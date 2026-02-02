@@ -1,0 +1,288 @@
+{
+  "slug": "princess-waiting-for-you",
+  "output": {
+    "dpi": 300,
+    "page_size_px": 2551
+  },
+  "pages": [
+    {
+      "page_num": 0,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_00_cover.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Cover - Princess in enchanted forest with fireflies",
+      "text_layers": [
+        {
+          "text_template": "<span class=\"title-name\">{child_name}</span>",
+          "style": {
+            "text_align": "center",
+            "allow_title_html": true,
+            "font_size": 120,
+            "color": "#FFD700",
+            "stroke_width": 4,
+            "stroke_color": "#4a2c7a"
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 1,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_01_title.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Title page + dedication",
+      "text_layers": [
+        {
+          "text_template": "This magical story was created especially for\n{child_name}\nA true princess with a brave heart",
+          "style": {
+            "text_align": "center",
+            "font_size": 48
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 2,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_02_forest_calls.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The forest whispers the princess's name",
+      "text_layers": [
+        {
+          "text_template": "One magical evening, {child_name} heard a gentle whisper carried by the wind.\n\n\"{child_name}... {child_name}...\"\n\nThe Enchanted Forest was calling her name.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 3,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_03_magic_light.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Magical light leads the way",
+      "text_layers": [
+        {
+          "text_template": "A trail of glowing flowers appeared before her, lighting a path into the woods.\n\nEach flower sparkled with a different color, as if the forest itself was showing her the way.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 4,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_04_portal.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Princess enters the magical portal",
+      "text_layers": [
+        {
+          "text_template": "{child_name} took a deep breath and stepped through the shimmering portal.\n\nThe air tingled with magic, and she felt braver than ever before.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 5,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_05_forest_alive.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The enchanted forest comes alive",
+      "text_layers": [
+        {
+          "text_template": "The Enchanted Forest was more beautiful than any dream.\n\nTrees with silver leaves swayed gently, and tiny creatures peeked out from behind mushrooms that glowed like lanterns.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 6,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_06_creatures.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Meeting the forest creatures",
+      "text_layers": [
+        {
+          "text_template": "Suddenly, magical creatures surrounded {child_name}.\n\nThere were fluffy foxes with wings, rabbits with flower crowns, and tiny fairies that sparkled like stars.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 7,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_07_waiting.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "We've been waiting for you!",
+      "text_layers": [
+        {
+          "text_template": "\"Princess {child_name}!\" they cheered together.\n\"We've been waiting for you!\"\n\n\"The forest needs a new Guardian,\" said a wise old owl. \"Someone with a kind heart and brave spirit.\"",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 8,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_08_kindness_test.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The test of kindness begins",
+      "text_layers": [
+        {
+          "text_template": "\"First, you must pass the Test of Kindness,\" the owl explained.\n\n{child_name} nodded. She was ready for whatever challenge awaited her.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 9,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_09_helping.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Princess helps an injured creature",
+      "text_layers": [
+        {
+          "text_template": "She found a tiny dragon with a hurt wing, crying by a stream.\n\nWithout hesitation, {child_name} gently bandaged its wing with soft leaves and sang a soothing song until the dragon smiled.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 10,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_10_first_crystal.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "First crystal earned",
+      "text_layers": [
+        {
+          "text_template": "The dragon's tears turned into a beautiful crystal that floated into {child_name}'s hands.\n\n\"The Crystal of Kindness,\" whispered the forest. \"You have earned it with your gentle heart.\"",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 11,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_11_dark_forest.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The dark part of the forest",
+      "text_layers": [
+        {
+          "text_template": "The path led {child_name} to the Shadowy Grove, where the trees blocked out all light.\n\nStrange sounds echoed around her, and even the bravest creatures feared this place.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 12,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_12_bravery_test.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The test of bravery",
+      "text_layers": [
+        {
+          "text_template": "\"This is the Test of Bravery,\" a voice echoed.\n\n{child_name} felt scared, but she remembered: true bravery isn't about not being scared. It's about being scared and still doing what's right.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 13,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_13_inner_light.jpg",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "The light within her heart",
+      "text_layers": [
+        {
+          "text_template": "{child_name} closed her eyes and thought of everyone she loved.\n\nA warm glow began to shine from her heart, pushing back the shadows. Her own magic was waking up!",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 14,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_14_spirits.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Forest spirits appear",
+      "text_layers": [
+        {
+          "text_template": "Ancient Forest Spirits emerged from the trees, their eyes twinkling with joy.\n\n\"You carry the light within you, Princess {child_name}. You have passed both tests!\"",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 15,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_15_interactive.jpg",
+      "needs_face_swap": false,
+      "is_interactive": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Interactive page - Design your own magic crown",
+      "text_layers": [
+        {
+          "text_template": "Draw and color your own magical Guardian crown!\nWhat special powers will YOUR crown have?",
+          "style": {
+            "font_size": 36,
+            "text_align": "center"
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 16,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_16_coronation.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Coronation as Guardian of the Forest",
+      "text_layers": [
+        {
+          "text_template": "In a shower of golden light, a crown of flowers and crystals appeared on {child_name}'s head.\n\n\"We crown you Guardian of the Enchanted Forest!\" declared all the creatures together.",
+          "style": {
+            "font_size": 42
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 17,
+      "base_uri": "templates/princess-waiting-for-you/pages/spread_17_finale.jpg",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "description": "Finale - Princess with her magic",
+      "text_layers": [
+        {
+          "text_template": "And so, Princess {child_name} became the Guardian of the Enchanted Forest.\n\nShe learned that the greatest magic of all comes from a kind heart and the courage to believe in yourself.\n\nThe End",
+          "style": {
+            "font_size": 42,
+            "text_align": "center"
+          }
+        }
+      ]
+    }
+  ]
+}

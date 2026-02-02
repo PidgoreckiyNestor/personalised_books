@@ -1,0 +1,173 @@
+{
+  "slug": "test-princess",
+  "output": {
+    "dpi": 300,
+    "page_size_px": 2551
+  },
+  "covers": {
+    "front": {
+      "base_uri": "templates/test-princess/covers/front/base.png",
+      "needs_face_swap": true,
+      "logo_uri": "templates/test-princess/covers/front/logo.png",
+      "crop_preview": { "x": 25, "y": 210, "w": 2551, "h": 2551 },
+      "text_layers": [
+        {
+          "text_template": "Принцеса {child_name}\nі Таємниця\nЗачарованого Лісу",
+          "style": {
+            "box_w": 1400,
+            "box_h": 500,
+            "top": 120,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 100,
+            "font_weight": 700,
+            "color": "#ffffff",
+            "stroke_width": 6,
+            "stroke_color": "#2d5a3d",
+            "shadow_color": "0,0,0",
+            "shadow_opacity": 0.7,
+            "shadow_offset": 5,
+            "shadow_blur": [0, 10, 20]
+          }
+        }
+      ]
+    },
+    "back": {
+      "base_uri": "templates/test-princess/covers/back/base.png",
+      "needs_face_swap": false,
+      "logo_uri": "templates/test-princess/covers/back/logo.png",
+      "crop_preview": { "x": 210, "y": 210, "w": 2551, "h": 2551 },
+      "text_layers": [
+        {
+          "text_template": "Казка про {child_name}, яка знайшла чарівний ключик до Зачарованого Лісу, де на неї чекали нові друзі та неймовірні пригоди.",
+          "style": {
+            "box_w": 1600,
+            "box_h": 400,
+            "top": 1800,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 32,
+            "font_weight": 400,
+            "color": "#3d5a3d",
+            "stroke_width": 1,
+            "stroke_color": "#ffffff",
+            "shadow_color": "255,255,255",
+            "shadow_opacity": 0.5,
+            "shadow_offset": 2,
+            "shadow_blur": [0, 4]
+          }
+        }
+      ]
+    }
+  },
+  "pages": [
+    {
+      "page_num": 0,
+      "base_uri": "templates/test-princess/pages/page_01.png",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "text_layers": [
+        {
+          "text_template": "Принцеса {child_name}\nі Таємниця Зачарованого Лісу",
+          "style": {
+            "box_w": 1200,
+            "box_h": 400,
+            "top": 80,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 90,
+            "font_weight": 600,
+            "color": "#ffffff",
+            "stroke_width": 5,
+            "stroke_color": "#2d5a3d",
+            "shadow_color": "0,0,0",
+            "shadow_opacity": 0.6,
+            "shadow_offset": 4,
+            "shadow_blur": [0, 8, 16]
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 1,
+      "base_uri": "templates/test-princess/pages/page_02.png",
+      "needs_face_swap": true,
+      "availability": {"prepay": true, "postpay": true},
+      "text_layers": [
+        {
+          "text_template": "Одного сонячного ранку принцеса {child_name} знайшла у своїй кімнаті таємничу скриньку.\n\nВсередині лежав золотий ключик і записка: «Цей ключ відкриє двері до Зачарованого Лісу, де на тебе чекають друзі».",
+          "style": {
+            "box_w": 1800,
+            "box_h": 500,
+            "top": 1850,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 36,
+            "font_weight": 500,
+            "color": "#4a3728",
+            "stroke_width": 2,
+            "stroke_color": "#ffffff",
+            "shadow_color": "255,255,255",
+            "shadow_opacity": 0.8,
+            "shadow_offset": 2,
+            "shadow_blur": [0, 4, 8]
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 2,
+      "base_uri": "templates/test-princess/pages/page_03.png",
+      "needs_face_swap": false,
+      "availability": {"prepay": true, "postpay": true},
+      "text_layers": [
+        {
+          "text_template": "Ключик засвітився м'яким світлом і перед {child_name} з'явилась чарівна кімната.\n\nНа ліжечку спав маленький рожевий єдиноріг. Він ніжно позіхнув і відкрив очі.",
+          "style": {
+            "box_w": 1800,
+            "box_h": 450,
+            "top": 1900,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 36,
+            "font_weight": 500,
+            "color": "#6b3a5c",
+            "stroke_width": 2,
+            "stroke_color": "#ffeef5",
+            "shadow_color": "255,255,255",
+            "shadow_opacity": 0.7,
+            "shadow_offset": 2,
+            "shadow_blur": [0, 4, 8]
+          }
+        }
+      ]
+    },
+    {
+      "page_num": 3,
+      "base_uri": "templates/test-princess/pages/page_04.png",
+      "needs_face_swap": true,
+      "availability": {"prepay": false, "postpay": true},
+      "text_layers": [
+        {
+          "text_template": "З того дня {child_name} знала: справжня магія живе у доброті та дружбі.\n\nКінець\n\nСолодких снів, {child_name}!",
+          "style": {
+            "box_w": 1800,
+            "box_h": 550,
+            "top": 1750,
+            "margin_left": 0,
+            "text_align": "center",
+            "font_size": 38,
+            "font_weight": 600,
+            "color": "#ffffff",
+            "stroke_width": 4,
+            "stroke_color": "#2d5a3d",
+            "shadow_color": "0,0,0",
+            "shadow_opacity": 0.65,
+            "shadow_offset": 4,
+            "shadow_blur": [0, 8, 16]
+          }
+        }
+      ]
+    }
+  ]
+}
