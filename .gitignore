@@ -75,10 +75,3 @@ coverage.xml
 *.cover
 
 .pytest_cache/
-
-.mypy_cache/comfyui/comfyui-workspace/
-reference/CopyBookApp/
-reference/wonder_wraps_copy/
-comfyui/comfyui-workspace/
-reference/CopyBookApp/
-reference/wonder_wraps_copy/

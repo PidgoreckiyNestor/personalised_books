@@ -1,0 +1,9 @@
+[submodule "comfyui/comfyui-workspace"]
+	path = comfyui/comfyui-workspace
+	url = git@github.com:PidgoreckiyNestor/comfyui-workspace.git
+[submodule "reference/CopyBookApp"]
+	path = reference/CopyBookApp
+	url = git@github.com:PidgoreckiyNestor/CopyBookApp.git
+[submodule "reference/wonder_wraps_copy"]
+	path = reference/wonder_wraps_copy
+	url = git@github.com:PidgoreckiyNestor/wonder_wraps_copy.git
