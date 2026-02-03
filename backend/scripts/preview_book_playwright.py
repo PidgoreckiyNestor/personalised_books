@@ -15,6 +15,7 @@ import base64
 import html
 import io
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -26,11 +27,10 @@ from playwright.async_api import async_playwright
 # ============ Rendering logic (adapted from html_text.py) ============
 
 DEFAULT_TEXT_SETTINGS: Dict[str, Any] = {
-    "target_size": 2551,
+    "target_size": 1080,
     "font_size": 70,
     "font_family": "'Arial Unicode MS', 'Comic Sans MS', sans-serif",
     "font_weight": 600,
-    "line_height": 1.15,
     "text_align": "left",
     "stroke_width": 0,
     "stroke_color": "#ffffff",
@@ -38,7 +38,6 @@ DEFAULT_TEXT_SETTINGS: Dict[str, Any] = {
     "shadow_color": "0,0,0",
     "shadow_opacity": 1.0,
     "shadow_offset": 4,
-    "shadow_blur": [0, 20, 40, 60],
     "box_w": 1611,
     "box_h": 1784,
     "top": 451,
@@ -61,6 +60,37 @@ def _hex_to_rgb(hex_color: str) -> tuple:
     if len(s) != 6:
         return (0, 0, 0)
     return int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16)
+
+
+# HTML sanitizer patterns (extended from production)
+_ALLOWED_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_ALLOWED_SPAN_OPEN_RE = re.compile(
+    r"""^<\s*span\s+class\s*=\s*(?P<q>['"])\s*(?P<cls>title-big|title-small|bold|large|bold\s+large|large\s+bold)\s*(?P=q)\s*>\s*$""",
+    flags=re.IGNORECASE,
+)
+_ALLOWED_SPAN_CLOSE_RE = re.compile(r"^<\s*/\s*span\s*>\s*$", flags=re.IGNORECASE)
+_ALLOWED_BR_RE = re.compile(r"^<\s*br\s*/?\s*>\s*$", flags=re.IGNORECASE)
+
+
+def _sanitize_html(text_html: str) -> str:
+    """Whitelist-only HTML sanitizer for preview."""
+    out: List[str] = []
+    last_end = 0
+    for m in _ALLOWED_HTML_TAG_RE.finditer(text_html):
+        start, end = m.span()
+        if start > last_end:
+            out.append(html.escape(text_html[last_end:start]))
+        tag = text_html[start:end]
+        if (_ALLOWED_SPAN_OPEN_RE.match(tag) or
+            _ALLOWED_SPAN_CLOSE_RE.match(tag) or
+            _ALLOWED_BR_RE.match(tag)):
+            out.append(tag)
+        else:
+            out.append(html.escape(tag))
+        last_end = end
+    if last_end < len(text_html):
+        out.append(html.escape(text_html[last_end:]))
+    return "".join(out)
 
 
 def _build_text_shadow_layers(
@@ -125,6 +155,7 @@ def _build_html(
     font_data_uri: str,
     text: str,
     settings_dict: Dict[str, Any],
+    bold_font_data_uri: str = "",
 ) -> str:
     target_size = settings_dict["target_size"]
     stroke_width = int(settings_dict.get("stroke_width", 0) or 0)
@@ -135,6 +166,10 @@ def _build_html(
     )
     title_small_size = int(settings_dict.get("title_small_size", int(settings_dict["font_size"])))
 
+    # Bold and large sizes for custom spans
+    bold_size = int(settings_dict.get("bold_size", int(settings_dict["font_size"]) + 16))
+    large_size = int(settings_dict.get("large_size", int(settings_dict["font_size"]) + 38))
+
     text_shadow_css = _build_text_shadow_css(
         stroke_width=stroke_width,
         stroke_color=stroke_color,
@@ -144,8 +179,14 @@ def _build_html(
         shadow_opacity=float(settings_dict.get("shadow_opacity", 0.7)),
     )
 
-    # Escape to prevent HTML/JS injection; keep newlines as-is (white-space: pre-line handles them)
-    safe_text = html.escape(text)
+    # Check if HTML is allowed (for bold/italic spans)
+    allow_html = settings_dict.get("allow_title_html", False)
+    if allow_html:
+        # Whitelist-only HTML sanitizer
+        safe_text = _sanitize_html(text)
+    else:
+        # Escape all HTML to prevent injection
+        safe_text = html.escape(text)
 
     font_face = ""
     if font_data_uri:
@@ -153,6 +194,15 @@ def _build_html(
 @font-face {{
   font-family: 'CustomFont';
   src: url('{font_data_uri}');
+  font-weight: 400;
+}}
+"""
+    if bold_font_data_uri:
+        font_face += f"""
+@font-face {{
+  font-family: 'CustomFont';
+  src: url('{bold_font_data_uri}');
+  font-weight: 700;
 }}
 """
 
@@ -175,7 +225,7 @@ html, body {{
 body {{
   background: url('{bg_data_uri}') center center / cover no-repeat;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
 }}
 
@@ -192,7 +242,6 @@ body {{
   font-family: {settings_dict['font_family']};
   font-size: {settings_dict['font_size']}px;
   font-weight: {settings_dict['font_weight']};
-  line-height: {settings_dict['line_height']};
   text-align: {settings_dict['text_align']};
   white-space: {settings_dict.get('white_space', 'pre-line')};
 
@@ -205,7 +254,7 @@ body {{
   paint-order: stroke fill;
 
   text-shadow:
-  {text_shadow_css};
+{text_shadow_css};
 }}
 
 .fill * {{
@@ -225,6 +274,26 @@ body {{
   font-size: {title_small_size}px;
   line-height: 1.05;
   display: inline-block;
+}}
+
+/* Bold text class - used in manifest with <span class="bold"> */
+.bold {{
+  font-size: {bold_size}px;
+  font-weight: 700;
+  line-height: 1.0;
+  display: inline;
+  vertical-align: baseline;
+}}
+
+/* Large text class - used in manifest with <span class="large"> */
+.large {{
+  font-size: {large_size}px;
+}}
+
+/* Combined bold large */
+.bold.large {{
+  font-size: {large_size}px;
+  font-weight: 700;
 }}
 </style>
 </head>
@@ -273,6 +342,7 @@ async def render_text_layers(
 
             # Load font if specified
             font_data_uri = ""
+            bold_font_data_uri = ""
             font_uri = layer.get("font_uri", "")
             if font_uri and fonts_dir:
                 font_name = Path(font_uri).name
@@ -281,8 +351,14 @@ async def render_text_layers(
                     font_data_uri = _font_to_data_uri(font_path)
                     style["font_family"] = f"'CustomFont', {style['font_family']}"
 
+                    # Try to load bold variant (e.g., Rubik-Regular.ttf -> Rubik-Bold.ttf)
+                    bold_font_name = font_name.replace("-Regular", "-Bold").replace("_Regular", "_Bold")
+                    bold_font_path = fonts_dir / bold_font_name
+                    if bold_font_path.exists() and bold_font_path != font_path:
+                        bold_font_data_uri = _font_to_data_uri(bold_font_path)
+
             # Build HTML
-            html_doc = _build_html(bg_data_uri, font_data_uri, text, style)
+            html_doc = _build_html(bg_data_uri, font_data_uri, text, style, bold_font_data_uri)
 
             # Render with Playwright
             page = await browser.new_page(viewport={"width": output_px, "height": output_px})
@@ -408,7 +484,7 @@ async def preview_cover(
     print(f"  Cover ({cover_type}): {Path(base_uri).name}")
 
     slug = manifest["slug"]
-    output_px = manifest.get("output", {}).get("page_size_px", 2551)
+    output_px = manifest.get("output", {}).get("page_size_px", 1080)
 
     # Load base image
     img = load_local_image(base_uri, templates_dir, slug)
@@ -458,7 +534,7 @@ async def preview_page(
     print(f"  Page {page_num}: {Path(base_uri).name}")
 
     slug = manifest["slug"]
-    output_px = manifest.get("output", {}).get("page_size_px", 2551)
+    output_px = manifest.get("output", {}).get("page_size_px", 1080)
 
     # Load base image
     img = load_local_image(base_uri, templates_dir, slug)
