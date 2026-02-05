@@ -7,3 +7,6 @@
 [submodule "reference/wonder_wraps_copy"]
 	path = reference/wonder_wraps_copy
 	url = git@github.com:PidgoreckiyNestor/wonder_wraps_copy.git
+[submodule "reference/Comfy"]
+	path = reference/Comfy
+	url = https://github.com/runpod-workers/comfyui-base.git

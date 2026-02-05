@@ -1,0 +1,81 @@
+# Build and Push ComfyUI Docker Image to Docker Hub
+#
+# Triggers:
+#   - Push to main branch with changes in comfyui/ directory
+#   - Manual workflow dispatch
+#
+# Required Secrets:
+#   - DOCKERHUB_USERNAME: Your Docker Hub username
+#   - DOCKERHUB_TOKEN: Docker Hub access token (create at hub.docker.com/settings/security)
+#
+# To set up:
+#   1. Go to repo Settings > Secrets and variables > Actions
+#   2. Add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets
+#   3. Push changes to comfyui/ directory or manually trigger
+
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'comfyui/**'
+      - '.github/workflows/docker-publish.yml'
+  workflow_dispatch:
+    inputs:
+      push_latest:
+        description: 'Also push :latest tag'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: comfyui-runpod
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.event_name != 'workflow_dispatch' || inputs.push_latest }}
+            type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./comfyui
+          file: ./comfyui/Dockerfile.runpod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Image digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "Image pushed with digest $DIGEST"
