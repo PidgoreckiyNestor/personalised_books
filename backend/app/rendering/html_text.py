@@ -409,3 +409,4 @@ async def render_text_layers_over_image(
     return cur
 
 
+

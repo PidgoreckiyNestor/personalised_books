@@ -327,7 +327,7 @@ def upload_image_to_comfy(img: Image.Image, filename: str, server_address: str) 
             "overwrite": "true"
         }
         
-        response = requests.post(f"{server_address}/upload/image", files=files, data=data, timeout=30)
+        response = requests.post(f"{server_address}/upload/image", files=files, data=data, timeout=120)
         response.raise_for_status()
         result = response.json()
         
@@ -574,7 +574,7 @@ def run_face_transfer_comfy_api(
     """
     Run face transfer using ComfyUI REST API.
     """
-    server_address = settings.COMFY_BASE_URL
+    server_address = settings.COMFY_BASE_URL.rstrip("/")
     logger.info(f"Starting face transfer with ComfyUI: {server_address}")
     
 
