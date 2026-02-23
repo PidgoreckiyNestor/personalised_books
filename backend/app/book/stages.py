@@ -19,12 +19,11 @@ def front_visible_page_nums(manifest: BookManifest) -> List[int]:
 
 
 def prepay_page_nums(manifest: BookManifest) -> List[int]:
-    candidates = front_visible_page_nums(manifest)
-    if not candidates:
-        return []
-    if len(candidates) == 1:
-        return candidates
-    return [candidates[0], candidates[-1]]
+    return sorted(
+        p.page_num
+        for p in manifest.pages
+        if p.availability.prepay and p.page_num not in FRONT_HIDDEN_PAGE_NUMS
+    )
 
 
 def _prepay_page_nums(manifest: BookManifest) -> List[int]:

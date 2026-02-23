@@ -16,16 +16,20 @@
         "w": 1080,
         "h": 1080
       },
+      "availability": {
+        "prepay": true,
+        "postpay": true
+      },
       "text_layers": [
         {
           "text_template": "{child_name} у Дивокраї",
           "font_uri": "templates/wonderland-book/fonts/RubikBubbles-Regular.ttf",
           "style": {
-            "box_w": 547,
+            "box_w": 800,
             "box_h": 268,
             "top": 80,
             "line_height": 110,
-            "margin_left": 266,
+            "margin_left": 140,
             "text_align": "center",
             "font_size": 100,
             "font_weight": 400,
@@ -51,6 +55,10 @@
         "w": 1080,
         "h": 1080
       },
+      "availability": {
+        "prepay": false,
+        "postpay": true
+      },
       "text_layers": [
         {
           "text_template": "Крок у чарівну браму — і ти в Дивокраї! Шоколадні водоспади, морозивні вежі, карамельні гірки та бал у казковому замку.\nПерсоналізована пригода для маленьких мрійників.",
@@ -73,6 +81,38 @@
     }
   },
   "pages": [
+    {
+      "page_num": -1,
+      "base_uri": "templates/wonderland-book/covers/front/base.jpg",
+      "needs_face_swap": true,
+      "availability": {
+        "prepay": true,
+        "postpay": true
+      },
+      "description": "Front cover",
+      "text_layers": [
+        {
+          "text_template": "{child_name} у Дивокраї",
+          "font_uri": "templates/wonderland-book/fonts/RubikBubbles-Regular.ttf",
+          "style": {
+            "box_w": 800,
+            "box_h": 268,
+            "top": 80,
+            "line_height": 110,
+            "margin_left": 140,
+            "text_align": "center",
+            "font_size": 100,
+            "font_weight": 400,
+            "color": "#ffffff",
+            "stroke_width": 0,
+            "shadow_color": "0,0,0",
+            "shadow_opacity": 0.25,
+            "shadow_offset": 4,
+            "shadow_blur": [0, 4]
+          }
+        }
+      ]
+    },
     {
       "page_num": 0,
       "base_uri": "templates/wonderland-book/pages/page_00_base.png",
@@ -123,7 +163,7 @@
       "base_uri": "templates/wonderland-book/pages/page_02_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка йде цукерковою стежкою"
@@ -133,7 +173,7 @@
       "base_uri": "templates/wonderland-book/pages/page_03_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Цукеркова стежка - пейзаж",
@@ -168,7 +208,7 @@
       "base_uri": "templates/wonderland-book/pages/page_04_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Шоколадний фонтан - пейзаж",
@@ -203,7 +243,7 @@
       "base_uri": "templates/wonderland-book/pages/page_05_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка з гарячим какао",
@@ -238,7 +278,7 @@
       "base_uri": "templates/wonderland-book/pages/page_06_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Торт-гора - пейзаж",
@@ -273,7 +313,7 @@
       "base_uri": "templates/wonderland-book/pages/page_07_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка біля морозивних веж",
@@ -308,7 +348,7 @@
       "base_uri": "templates/wonderland-book/pages/page_08_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Солодке місто - пейзаж",
@@ -343,7 +383,7 @@
       "base_uri": "templates/wonderland-book/pages/page_09_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка на хмаринці"
@@ -353,7 +393,7 @@
       "base_uri": "templates/wonderland-book/pages/page_10_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Ярмарок - пейзаж",
@@ -388,7 +428,7 @@
       "base_uri": "templates/wonderland-book/pages/page_11_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Карусель - пейзаж",
@@ -423,7 +463,7 @@
       "base_uri": "templates/wonderland-book/pages/page_12_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Карамельна гірка - пейзаж",
@@ -458,7 +498,7 @@
       "base_uri": "templates/wonderland-book/pages/page_13_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка з'їжджає з карамельної гірки",
@@ -493,7 +533,7 @@
       "base_uri": "templates/wonderland-book/pages/page_14_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Золотий поїзд - пейзаж",
@@ -528,7 +568,7 @@
       "base_uri": "templates/wonderland-book/pages/page_15_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Хмари - пейзаж",
@@ -563,7 +603,7 @@
       "base_uri": "templates/wonderland-book/pages/page_16_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Вид з вікна поїзда - пейзаж",
@@ -598,8 +638,8 @@
       "base_uri": "templates/wonderland-book/pages/page_17_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
-        "postpay": true
+        "prepay": false,
+        "postpay": false
       },
       "description": "Дівчинка у поїзді"
     },
@@ -608,8 +648,8 @@
       "base_uri": "templates/wonderland-book/pages/page_18_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
-        "postpay": true
+        "prepay": false,
+        "postpay": false
       },
       "description": "Кексове село - пейзаж",
       "text_layers": [
@@ -643,8 +683,8 @@
       "base_uri": "templates/wonderland-book/pages/page_19_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
-        "postpay": true
+        "prepay": false,
+        "postpay": false
       },
       "description": "Дівчинка у кексовому селі"
     },
@@ -653,7 +693,7 @@
       "base_uri": "templates/wonderland-book/pages/page_20_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Замок з сакурами - пейзаж"
@@ -663,7 +703,7 @@
       "base_uri": "templates/wonderland-book/pages/page_21_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Сакури - пейзаж",
@@ -698,7 +738,7 @@
       "base_uri": "templates/wonderland-book/pages/page_22_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Бальна зала - пейзаж",
@@ -733,7 +773,7 @@
       "base_uri": "templates/wonderland-book/pages/page_23_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка на балу",
@@ -768,7 +808,7 @@
       "base_uri": "templates/wonderland-book/pages/page_24_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка у човні на квітковій річці",
@@ -803,7 +843,7 @@
       "base_uri": "templates/wonderland-book/pages/page_25_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Квіткова річка - пейзаж",
@@ -839,7 +879,7 @@
       "base_uri": "templates/wonderland-book/pages/page_26_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка під деревом солодощів"
@@ -849,7 +889,7 @@
       "base_uri": "templates/wonderland-book/pages/page_27_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Галявина - пейзаж",
@@ -884,7 +924,7 @@
       "base_uri": "templates/wonderland-book/pages/page_28_base.png",
       "needs_face_swap": false,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Поле квітів та цукерок - пейзаж",
@@ -919,7 +959,7 @@
       "base_uri": "templates/wonderland-book/pages/page_29_base.png",
       "needs_face_swap": true,
       "availability": {
-        "prepay": true,
+        "prepay": false,
         "postpay": true
       },
       "description": "Дівчинка лежить серед квітів - фінал",

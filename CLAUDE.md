@@ -4,117 +4,163 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personalised Books is a platform for creating custom children's books with AI-powered face transfer. Users upload a child's photo, which is analyzed and used to generate personalized illustrations where the child's face appears in book illustrations.
+Personalised Books is a platform for creating custom children's books with AI-powered face transfer. Users upload a child's photo, which is analyzed via Qwen2-VL and then used to generate personalized illustrations where the child's face appears in book pages via ComfyUI workflows (IPAdapter + ControlNet).
 
 ## Architecture
 
 ### Services (Docker Compose)
-- **web**: FastAPI backend API server (port 8000)
-- **frontend**: React SPA with Vite (port 80)
-- **comfyui**: ComfyUI server for image generation workflows (port 8188)
-- **celery_worker**: GPU queue worker for face analysis and face swap tasks
-- **celery_render_worker**: CPU queue worker for text rendering and PDF generation
-- **db**: PostgreSQL database
-- **redis**: Celery message broker
 
-### Backend Structure (`backend/app/`)
-- `main.py` - FastAPI app entry point with route registration
-- `routes/` - API endpoints (auth, catalog, personalizations, cart, orders, account)
-- `tasks.py` - Celery tasks for async processing (analyze_photo_task, build_stage_backgrounds_task, render_stage_pages_task)
-- `workers.py` - Celery app configuration with task routing
-- `inference/` - ML inference code
-  - `comfy_runner.py` - ComfyUI workflow integration for face transfer
-  - `vision_qwen.py` - Qwen2-VL for photo analysis
-- `book/` - Book manifest handling
-  - `manifest.py` - Pydantic models for book structure (PageSpec, TextLayer, BookManifest)
-  - `manifest_store.py` - Loading manifests from templates
-  - `stages.py` - Stage logic (prepay/postpay page determination)
-- `rendering/html_text.py` - Text layer rendering with Playwright
+- **web**: FastAPI backend (port 8000)
+- **frontend**: React SPA via nginx (port 80), proxies `/api/` to `http://web:8000/`
+- **comfyui**: ComfyUI server for image generation (port 8188)
+- **celery_worker**: GPU queue — face analysis, face swap
+- **celery_render_worker**: CPU queue — text rendering (Playwright), PDF generation
+- **db**: PostgreSQL (async via psycopg + SQLAlchemy)
+- **redis**: Celery broker
 
-### Frontend Structure (`faceapp-front/`)
-React + TypeScript + Vite + Tailwind CSS
-- `src/pages/` - PersonalizationPage, PreviewPage
+### Docker Compose Variants
 
-### Book Templates (`backend/templates/{slug}/`)
-Each book template contains:
-- `manifest.json` - Book structure defining pages, face swap requirements, text layers, fonts
-- `pages/` - Base illustration images
-- `covers/` - Cover images
-- `fonts/` - Custom fonts for text rendering
-- `masks/` - Optional face masks for ComfyUI workflows
+```bash
+docker compose up -d                                                  # production
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d  # dev (MinIO, MOCK_ML, no GPU)
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d  # GPU deploy
+docker compose -f docker-compose.local.yml up -d                      # local infra only (MinIO + DB + Redis)
+```
 
 ## Common Commands
 
-### Backend Development
+### Backend
+
 ```bash
-# Install dependencies (use Python 3.13 venv)
 cd backend
-python -m pip install -r requirements.txt
-
-# Run API server locally
+python -m pip install -r requirements.txt          # install deps (Python 3.13 venv)
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Run Celery worker
 python -m celery -A app.workers.celery_app worker --loglevel=info
-
-# Run tests
-pytest backend/tests/
-pytest backend/test_face_swap.py  # specific test file
+python -m app.seed_data           # seed books catalog (add --drop to reset)
+pytest backend/tests/             # run test suite
+pytest backend/tests/test_api_basic.py::test_health  # single test
 ```
 
-### Frontend Development
+### Frontend
+
 ```bash
 cd faceapp-front
-npm install
-npm run dev      # development server
-npm run build    # production build
-npm run lint     # ESLint
+npm install && npm run dev        # dev server with /api proxy to localhost:8000
+npm run build                     # production build
+npm run lint                      # ESLint
 ```
 
-### Docker
+### Useful Scripts
+
 ```bash
-docker compose up -d              # start all services
-docker compose up -d web frontend # start specific services
-docker compose logs -f web        # follow logs
-docker compose down               # stop all
+scripts/setup_minio.sh            # create MinIO bucket + upload templates
+backend/scripts/purge_jobs.py --yes  # delete all jobs/artifacts/cart/order items
+backend/scripts/preview_book.py   # local book preview generation
 ```
 
-## Key Workflows
+## Key Design Decisions
 
-### Personalization Pipeline
-1. User uploads photo → `POST /upload_and_analyze/` creates Job, queues `analyze_photo_task` (GPU queue)
-2. Analysis completes → Job status becomes `analyzing_completed`
-3. User confirms with name/age → `POST /generate/` queues stage generation:
-   - `build_stage_backgrounds_task` (GPU) - runs face swap via ComfyUI
-   - `render_stage_pages_task` (CPU) - applies text layers
-4. Prepay stage completes → status `prepay_ready`, preview available
-5. Payment triggers postpay generation → status `completed`
+### Database
 
-### Face Transfer (ComfyUI)
-`comfy_runner.py:run_face_transfer()`:
-1. Loads illustration from S3
-2. Optionally loads explicit mask or generates one via face detection
-3. Uploads images to ComfyUI server
-4. Builds workflow from `workflow_api.json` or `workflow.json`
-5. Queues prompt, polls for completion, returns result image
+- **No Alembic** — tables auto-created via `Base.metadata.create_all` on startup. New tables are added as separate models rather than altering existing ones. Schema changes to existing tables use one-off scripts in `backend/scripts/` (raw psycopg SQL).
+- All PKs are `String` (UUID stored as text). No ORM relationships defined — all joins are manual queries.
+- `expire_on_commit=False` on `AsyncSessionLocal` to prevent `MissingGreenlet` errors after commit.
 
-## Environment Configuration
+### Celery + Asyncio Pattern
 
-Copy `env.example` to `.env` and configure:
-- `DATABASE_URL` - PostgreSQL connection
-- `CELERY_BROKER_URL` / `CELERY_RESULT_BACKEND` - Redis
-- AWS S3 credentials for asset storage
-- `COMFY_BASE_URL` - ComfyUI server URL
-- `VITE_API_BASE_URL` - Backend URL for frontend builds
+Celery tasks are synchronous but run async business logic via `asyncio.run()` inside each task, creating their own `AsyncSessionLocal()` context. This is intentional — Celery doesn't support native async in this setup.
 
-## Celery Task Queues
-- `gpu` - Photo analysis, face swap (requires GPU)
-- `render` - Text rendering, PDF generation (CPU-only)
-- `celery` - Default queue
+### Config
+
+Single `Settings` class in `backend/app/config.py` using `pydantic_settings.BaseSettings`. Key flags:
+
+- `MOCK_ML=true` — skip real ML inference in dev (returns hardcoded analysis)
+- `IPADAPTER_STRENGTH_SCALE` — scale IPAdapter weight in ComfyUI workflow
+- `.env` is read automatically; `env.example` at root covers only ComfyUI proxy and `VITE_API_BASE_URL`
+
+### Face Mask Fallback Chain
+
+1. Explicit mask from S3 (`mask_{filename}`)
+2. OpenCV Haar cascade auto-detected face → Gaussian-blurred ellipse
+3. Centered ellipse fallback
+
+### ComfyUI Workflow Injection
+
+`comfy_runner.py:build_comfy_workflow()` handles two JSON formats:
+
+- **API format** (`workflow_api.json`) — flat dict of nodes keyed by ID
+- **UI format** (`workflow.json`) — `{nodes: [...], links: [...]}` structure
+
+It scans by `class_type` to inject images, text prompts, seeds, and IPAdapter weights.
+
+## Personalization Pipeline
+
+```text
+upload_photo → analyze_photo_task (GPU)
+                    ↓
+           analyzing_completed
+                    ↓
+confirm name/age → build_stage_backgrounds_task (GPU, face swap)
+                    ↓
+                  render_stage_pages_task (CPU, text overlay via Playwright)
+                    ↓
+                prepay_ready (preview available)
+                    ↓
+          payment → postpay generation → completed
+```
+
+Artifacts stored in S3: `layout/{job_id}/pages/page_{N:02d}_bg.png` (GPU output), `page_{N:02d}.png` (with text), `book.pdf` (generated on first download).
+
+## Book Templates
+
+Located in S3 at `templates/{slug}/`. Each template has:
+
+- `manifest.json` — Pydantic-validated `BookManifest` defining pages, face swap flags, text layers with `str.format_map` templates (`{child_name}`, `{child_age}`, `{child_gender}`)
+- `pages/`, `covers/`, `fonts/`, `masks/` directories
+
+### Stage Logic
+
+- **prepay**: First and last visible pages (pages 1 and 23 are hidden from frontend preview via `FRONT_HIDDEN_PAGE_NUMS`)
+- **postpay**: All pages with `availability.postpay == True`
+- Text rendering: Playwright headless Chromium, fonts loaded from S3 as base64 data URIs
+
+## Frontend Conventions
+
+The frontend (`faceapp-front/`) is React 19 + TypeScript + Vite 7 + Tailwind CSS 4. It uses direct `fetch()` calls (no API client library). `VITE_API_BASE_URL` defaults to `/api`.
+
+The `reference/wonder_wraps_copy/` directory contains the target storefront design. Its `.cursorrules` defines TypeScript/React conventions (in Russian) that apply when building out the full frontend:
+
+- Never use `any` — use concrete types or `unknown`
+- Always `import type` for type-only imports
+- Props types named with `Props` suffix
+- Use `cn()` utility for conditional CSS classes, never template literals
+- Event handlers prefixed with `handle`
+- Named exports preferred; default exports only for page/route components
+- Import order: React → external libs → internal `@app/` → `@shared/` → styles → types
+
+## API Patterns
+
+- Auth: JWT via `PyJWT` + `bcrypt`. Three dependency variants: strict (`get_current_user`), optional (`get_current_user_optional`), header-or-query-param (`get_current_user_header_or_query` for browser download links)
+- Custom exceptions extend `FaceAppBaseException` (in `backend/app/exceptions.py`) with HTTP status codes
+- Structured JSON logging via `python-json-logger` with request/response middleware
 
 ## S3 Storage Layout
-- `child_photos/` - Uploaded child photos
-- `avatars/` - User avatars
-- `layout/{job_id}/pages/` - Generated page images
-- `results/{job_id}/` - Legacy generated results
-- `templates/{slug}/` - Book template assets
+
+```text
+child_photos/{job_id}_{filename}       # uploaded photos
+layout/{job_id}/pages/page_*_bg.png    # face-swapped backgrounds
+layout/{job_id}/pages/page_*.png       # final pages with text
+layout/{job_id}/book.pdf               # cached PDF (on-demand)
+templates/{slug}/                      # book template assets
+```
+
+## Known Code Issues
+
+- `personalizations.py` has duplicate route handler blocks from an incomplete merge — FastAPI uses the first registered handler, making later duplicates unreachable
+- `_presigned_get()` S3 helper is copy-pasted across catalog.py, personalizations.py, and cart routes
+- `normalize_child_name()` is duplicated in cart.py, orders.py, and personalizations.py
+- No unique constraint on `carts.user_id` — duplicates are merged at read time in `services/cart.py`
+
+## CI/CD
+
+Only GitHub Action is `.github/workflows/docker-publish.yml` — builds and pushes ComfyUI Docker image to Docker Hub on changes to `comfyui/`. No CI for backend or frontend.

@@ -301,7 +301,7 @@ body {{
   font-family: {settings_dict['font_family']};
   font-size: {settings_dict['font_size']}px;
   font-weight: {settings_dict['font_weight']};
-  line-height: {settings_dict['line_height']};
+  line-height: {settings_dict['line_height']}px;
   text-align: {settings_dict['text_align']};
   white-space: {settings_dict['white_space']};
 

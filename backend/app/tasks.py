@@ -122,6 +122,8 @@ def _s3_write_pil(img: Image.Image, key: str, dpi: Optional[int] = None) -> str:
 
 
 def _page_key(page_num: int) -> str:
+    if page_num == -1:
+        return "front_cover"
     return f"page_{page_num:02d}"
 
 
@@ -159,7 +161,7 @@ async def _upsert_artifact(
 
 
 @celery_app.task(bind=True, acks_late=True, max_retries=2)
-def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: bool = False):
+def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: bool = False, page_nums_filter: list = None):
     """
     GPU-stage task:
     - loads manifest from S3
@@ -169,6 +171,8 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
       - normalizes to output.page_size_px
       - writes background image to S3 (layout/..._bg.png)
     - enqueues CPU render task (text overlay / finalization)
+
+    If page_nums_filter is provided, only those page numbers are processed.
     """
 
     async def _run():
@@ -183,6 +187,8 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
                 page_nums = prepay_page_nums(manifest)
             else:
                 page_nums = page_nums_for_stage(manifest, stage) or []
+            if page_nums_filter:
+                page_nums = [p for p in page_nums if p in page_nums_filter]
             randomize_seed_flag = _should_randomize_seed(job, stage, randomize_seed)
 
             if stage == "prepay":
@@ -244,7 +250,11 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
             await db.commit()
 
             try:
-                render_stage_pages_task.apply_async(args=(job_id, stage), queue="render")
+                render_stage_pages_task.apply_async(
+                    args=(job_id, stage),
+                    kwargs={"page_nums_filter": page_nums_filter},
+                    queue="render",
+                )
             except Exception:
                 render_stage_pages_task.delay(job_id, stage)
 
@@ -271,7 +281,7 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
 
 
 @celery_app.task(bind=True, acks_late=True, max_retries=2)
-def render_stage_pages_task(self, job_id: str, stage: str):
+def render_stage_pages_task(self, job_id: str, stage: str, page_nums_filter: list = None):
     """
     CPU-stage task:
     - loads manifest
@@ -279,6 +289,8 @@ def render_stage_pages_task(self, job_id: str, stage: str):
       - loads background image from S3 (layout/..._bg.png) OR derives it directly from base_uri for non-face pages
       - applies text layers if configured
       - writes final page image to S3 (layout/...page_XX.png)
+
+    If page_nums_filter is provided, only those page numbers are processed.
     """
 
     async def _run():
@@ -295,6 +307,8 @@ def render_stage_pages_task(self, job_id: str, stage: str):
                 page_nums = prepay_page_nums(manifest)
             else:
                 page_nums = page_nums_for_stage(manifest, stage) or []
+            if page_nums_filter:
+                page_nums = [p for p in page_nums if p in page_nums_filter]
 
             if stage == "prepay":
                 job.status = "prepay_generating"

@@ -554,9 +554,16 @@ def get_image_result(prompt_id: str, server_address: str, timeout: int = 300) ->
                             "subfolder": subfolder,
                             "type": "output",
                         }
-                        img_resp = requests.get(f"{server_address}/view", params=params, timeout=30)
-                        img_resp.raise_for_status()
-                        return Image.open(io.BytesIO(img_resp.content))
+                        for attempt in range(3):
+                            try:
+                                img_resp = requests.get(f"{server_address}/view", params=params, timeout=120)
+                                img_resp.raise_for_status()
+                                return Image.open(io.BytesIO(img_resp.content))
+                            except requests.RequestException as dl_err:
+                                logger.warning(f"Download attempt {attempt+1}/3 failed: {dl_err}")
+                                if attempt == 2:
+                                    raise
+                                time.sleep(3)
                 
                 if "error" in status:
                     error_msg = status["error"]
@@ -762,11 +769,12 @@ def run_face_transfer(
         base_name = os.path.basename(key)
         mask_candidates = []
         if base_name.lower().endswith(".png"):
-            mask_candidates.append(key.replace(base_name, f"mask_{base_name}"))
+            root = base_name[:-4]
+            mask_candidates.append(key.replace(base_name, f"{root}_mask.png"))
         elif base_name.lower().endswith(".jpg") or base_name.lower().endswith(".jpeg"):
-            root = base_name[: -4] if base_name.lower().endswith(".jpg") else base_name[: -5]
-            mask_candidates.append(key.replace(base_name, f"mask_{root}.png"))
-            mask_candidates.append(key.replace(base_name, f"mask_{root}.jpg"))
+            root = base_name[:-4] if base_name.lower().endswith(".jpg") else base_name[:-5]
+            mask_candidates.append(key.replace(base_name, f"{root}_mask.png"))
+            mask_candidates.append(key.replace(base_name, f"{root}_mask.jpg"))
         for mc in mask_candidates:
             try:
                 mobj = s3.get_object(Bucket=bucket, Key=mc)
@@ -776,21 +784,12 @@ def run_face_transfer(
                 explicit_mask_pil = None
     except Exception:
         explicit_mask_pil = None
-    try:
-        seed = random.randint(1, 2**31 - 1) if randomize_seed else None
-        return run_face_transfer_comfy_api(
-            child_pil,
-            illustration_pil,
-            prompt,
-            negative_prompt,
-            mask_pil=explicit_mask_pil,
-            seed=seed,
-        )
-    except Exception as e:
-        print(f"ComfyUI API failed, falling back to local face transfer: {e}")
-
-    try:
-        return run_face_transfer_local(child_pil, illustration_pil, prompt, negative_prompt)
-    except Exception as e:
-        print(f"Local face transfer failed: {e}")
-        return illustration_pil
+    seed = random.randint(1, 2**31 - 1) if randomize_seed else None
+    return run_face_transfer_comfy_api(
+        child_pil,
+        illustration_pil,
+        prompt,
+        negative_prompt,
+        mask_pil=explicit_mask_pil,
+        seed=seed,
+    )

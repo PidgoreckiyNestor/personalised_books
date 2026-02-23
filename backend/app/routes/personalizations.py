@@ -4,19 +4,26 @@ Personalization routes - face transfer / book generation API.
 
 from __future__ import annotations
 
+import asyncio
+import io
 import json
 import os
 import uuid
+import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import List, Optional
 from urllib.parse import urlparse
 
 import boto3
+from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..auth import User, get_current_user_optional
+from ..auth import User, get_current_user_optional, get_current_user_header_or_query
 from ..book.manifest_store import load_manifest
 from ..book.stages import page_nums_for_front_preview, page_nums_for_stage, stage_has_face_swap
 from ..config import settings
@@ -24,7 +31,7 @@ from ..db import get_db
 from ..exceptions import InvalidJobStateError, JobNotFoundError, S3StorageError
 from ..logger import logger
 from ..models import Book, BookPreview, Job
-from ..schemas import AvatarUploadResponse, Personalization, PreviewPage, PreviewResponse
+from ..schemas import AvatarUploadResponse, GenerationRetry, Personalization, PreviewPage, PreviewResponse
 from ..tasks import analyze_photo_task, build_stage_backgrounds_task, render_stage_pages_task
 
 router = APIRouter(tags=["Personalizations"])
@@ -329,37 +336,51 @@ async def upload_personalization_avatar(job_id: str, file: UploadFile = File(...
     return AvatarUploadResponse(uploadId=job_id, expiresAt=datetime.utcnow())
 
 
-@router.post("/generate/")
+@router.post("/generate")
 async def confirm_personalization_generate(
     job_id: str = Form(...),
-    child_name: Optional[str] = Form(None),
-    child_age: Optional[int] = Form(None),
+    child_name: str = Form(...),
+    child_age: int = Form(...),
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
+    """Confirm personalization and start generation"""
+    # Get personalization
     result = await db.execute(select(Job).filter(Job.job_id == job_id))
     job = result.scalar_one_or_none()
+    
     if not job:
         raise JobNotFoundError(job_id)
-
+    
+    # In the new flow, /generate triggers PREPAY generation (first 3 postpay pages).
     if job.status not in ["preview_ready", "analyzing_completed", "prepay_ready"]:
         raise InvalidJobStateError(job_id, job.status, "preview_ready, analyzing_completed, or prepay_ready")
 
-    # Auth check - skip for testing if no user
+    analysis = job.analysis_json if isinstance(job.analysis_json, dict) else {}
+  
+    # # Verify user authentication
     # if not current_user:
-    #     raise HTTPException(status_code=401, detail={"error": {"code": "UNAUTHORIZED", "message": "Authentication required"}})
+    #     raise HTTPException(
+    #         status_code=401,
+    #         detail={"error": {"code": "UNAUTHORIZED", "message": "Authentication required"}}
+    #     )
+    
+    # # Verify job belongs to user
     # if job.user_id != current_user.id:
-    #     raise HTTPException(status_code=403, detail={"error": {"code": "FORBIDDEN", "message": "Personalization does not belong to user"}})
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail={"error": {"code": "FORBIDDEN", "message": "Personalization does not belong to user"}}
+    #     )
+    
+    # Update stored name/age from request body before generation
+    job.child_name = child_name
+    job.child_age = child_age
 
-    # Use provided values or keep existing from job
-    if child_name:
-        job.child_name = child_name
-    if child_age:
-        job.child_age = child_age
+    # Kick off PREPAY generation (first 3 postpay pages) after user confirmed
     job.status = "prepay_pending"
     await db.commit()
     await db.refresh(job)
-
+    
     try:
         manifest = load_manifest(job.slug)
         if stage_has_face_swap(manifest, "prepay"):
@@ -371,47 +392,10 @@ async def confirm_personalization_generate(
     except Exception as e:
         logger.error(f"Failed to enqueue generation for job {job_id}: {e}")
         raise
-
+    
+    logger.info(f"Personalization confirmed and generation started: {job_id}")
+    
     return {"status": "ok", "message": "Generation started"}
-
-"""
-Personalization routes - face transfer API
-"""
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Query
-from fastapi.responses import RedirectResponse, Response, StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import uuid
-from typing import Optional, List
-from datetime import datetime
-import boto3
-from botocore.exceptions import ClientError
-import os
-import io
-import zipfile
-from urllib.parse import urlparse
-from concurrent.futures import ThreadPoolExecutor
-import asyncio
-
-from ..db import get_db
-from ..models import Job, Book, BookPreview
-from ..schemas import (
-    Personalization,
-    AvatarUploadResponse,
-    PreviewResponse,
-    PreviewPage,
-    GenerationRetry,
-)
-from ..auth import get_current_user, get_current_user_optional, get_current_user_header_or_query, User
-from ..config import settings
-from ..tasks import analyze_photo_task, build_stage_backgrounds_task, render_stage_pages_task
-from ..logger import logger
-from ..exceptions import JobNotFoundError, InvalidJobStateError, S3StorageError
-from ..book.manifest_store import load_manifest
-from ..book.stages import page_nums_for_front_preview, page_nums_for_stage, stage_has_face_swap
-from PIL import Image
-
-router = APIRouter(tags=["Personalizations"])
 
 GENERATION_RETRY_LIMIT = 3
 
@@ -1328,43 +1312,3 @@ async def cancel_personalization(
 
 
 
-@router.post("/generate/")
-async def generate_personalization(
-    job_id: str = Form(...),
-    child_name: Optional[str] = Form(None),
-    child_age: Optional[int] = Form(None),
-    db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional),
-):
-    """Start generation - simplified for testing"""
-    result = await db.execute(select(Job).filter(Job.job_id == job_id))
-    job = result.scalar_one_or_none()
-    if not job:
-        raise JobNotFoundError(job_id)
-
-    if job.status not in ["preview_ready", "analyzing_completed", "prepay_ready"]:
-        raise InvalidJobStateError(job_id, job.status, "preview_ready, analyzing_completed, or prepay_ready")
-
-    # Use provided values or keep existing
-    if child_name:
-        job.child_name = child_name
-    if child_age:
-        job.child_age = child_age
-    
-    job.status = "prepay_pending"
-    await db.commit()
-    await db.refresh(job)
-
-    try:
-        manifest = load_manifest(job.slug)
-        if stage_has_face_swap(manifest, "prepay"):
-            build_stage_backgrounds_task.apply_async(args=(job_id, "prepay"), queue="gpu")
-            logger.info(f"Started PREPAY generation (GPU) for job: {job_id}")
-        else:
-            render_stage_pages_task.apply_async(args=(job_id, "prepay"), queue="render")
-            logger.info(f"Started PREPAY generation (render-only) for job: {job_id}")
-    except Exception as e:
-        logger.error(f"Failed to enqueue generation for job {job_id}: {e}")
-        raise
-
-    return {"status": "ok", "message": "Generation started"}
