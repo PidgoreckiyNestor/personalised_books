@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d dbname"]
       interval: 5s
@@ -93,11 +93,6 @@ services:
       - models_cache:/home/runner/ComfyUI/models
       # Use the repo entrypoint script without rebuilding the image (handy in restricted networks).
       - ./comfyui/entrypoint.sh:/home/runner/entrypoint.sh:ro
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
 
   celery_worker:
     build:
@@ -125,11 +120,6 @@ services:
       - ./backend:/app
       - models_cache:/models
       - ./models/insightface:/models/insightface:ro
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
 
   celery_render_worker:
     build:

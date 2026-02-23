@@ -52,7 +52,7 @@ services:
       POSTGRES_PASSWORD: books
       POSTGRES_DB: books
     ports:
-      - "5432:5432"
+      - "5433:5432"   # 5433 на хості → 5432 в контейнері (щоб не конфліктувати з локальним PostgreSQL)
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -71,35 +71,33 @@ services:
       timeout: 3s
       retries: 10
 
-  comfyui:
-    build:
-      context: ./comfyui
-      dockerfile: Dockerfile
-    ports:
-      - "8188:8188"
-    environment:
-      HF_HOME: "/home/runner/ComfyUI/models/hf"
-    volumes:
-      # Mount local models directory (download models here first)
-      - ./models:/home/runner/ComfyUI/models
-      - comfyui_output:/home/runner/ComfyUI/output
-      - comfyui_input:/home/runner/ComfyUI/input
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8188/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+  # comfyui:
+  #   build:
+  #     context: ./comfyui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8188:8188"
+  #   environment:
+  #     HF_HOME: "/home/runner/ComfyUI/models/hf"
+  #   volumes:
+  #     # Mount local models directory (download models here first)
+  #     - ./models:/home/runner/ComfyUI/models
+  #     - comfyui_output:/home/runner/ComfyUI/output
+  #     - comfyui_input:/home/runner/ComfyUI/input
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8188/"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
 
 volumes:
   minio_data:
   postgres_data:
-  comfyui_output:
-  comfyui_input:

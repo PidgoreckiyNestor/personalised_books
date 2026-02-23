@@ -1,8 +1,29 @@
-version: '3.8'
+# Dev overrides for Mac (no GPU, ComfyUI on RunPod)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 services:
   web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@db/dbname"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      AWS_ENDPOINT_URL: "http://minio:9000"
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      S3_BUCKET_NAME: "personalized-books"
+      AWS_REGION_NAME: "us-east-1"
+      COMFY_BASE_URL: "${COMFY_BASE_URL:-http://host.docker.internal:8188}"
     develop:
       watch:
         - action: sync
@@ -15,44 +36,96 @@ services:
             - "*.pyc"
             - "*.log"
         - action: rebuild
-          path: ./backend/requirements.txt
+          path: ./backend/requirements.dev.txt
 
-  frontend_dev:
+  # Replace comfyui with a lightweight stub — real ComfyUI runs on RunPod
+  comfyui:
+    image: busybox:latest
     build:
-      context: ./wonderwraps
+      context: ./comfyui
       dockerfile: Dockerfile.dev
-    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
+    command: ["sh", "-c", "echo 'ComfyUI disabled in dev — using RunPod' && sleep 1"]
+    volumes: []
+    environment: {}
+    ports: []
+    restart: "no"
+
+  # MinIO — local S3 replacement
+  minio:
+    image: minio/minio:latest
     ports:
-      - "8080:5173"
-    depends_on:
-      web:
-        condition: service_started
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      DOCKER: "1"
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://vm-1308.user-project-714.cloud.intcld.ru:8000}
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
     volumes:
-      - ./wonderwraps:/app
-      - wonderwraps_node_modules:/app/node_modules
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb local/personalized-books --ignore-existing;
+      mc anonymous set download local/personalized-books;
+      echo 'MinIO bucket created successfully';
+      "
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ~/.cache/huggingface:/models/hf
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@db/dbname"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      AWS_ENDPOINT_URL: "http://minio:9000"
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      S3_BUCKET_NAME: "personalized-books"
+      HF_HOME: "/models/hf"
+      MOCK_ML: "true"
+      COMFY_BASE_URL: "${COMFY_BASE_URL:-http://host.docker.internal:8188}"
+
+  celery_render_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      AWS_ENDPOINT_URL: "http://minio:9000"
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      S3_BUCKET_NAME: "personalized-books"
+
+  # Frontend: run on Mac directly — `cd faceapp-front && npm run dev`
+  # Docker networking issues prevent npm from working inside containers on some Macs
+  frontend:
+    image: busybox:latest
+    build:
+      context: ./comfyui
+      dockerfile: Dockerfile.dev
+    command: ["sh", "-c", "echo 'Frontend runs on Mac: cd faceapp-front && npm run dev (http://localhost:5173)' && sleep 1"]
+    ports: []
+    restart: "no"
     healthcheck:
       disable: true
-    develop:
-      watch:
-        - action: sync
-          path: ./wonderwraps
-          target: /app
-          ignore:
-            - node_modules/
-            - dist/
-            - .vite/
-            - coverage/
-            - "*.log"
-            - .env
-            - .env.*
-        - action: rebuild
-          path: ./wonderwraps/package.json
-        - action: rebuild
-          path: ./wonderwraps/package-lock.json
 
 volumes:
-  wonderwraps_node_modules:
-
+  minio_data:

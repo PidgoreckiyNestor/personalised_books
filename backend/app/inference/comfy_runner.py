@@ -52,6 +52,13 @@ def build_comfy_workflow(
                             node.setdefault("inputs", {})["image"] = child_photo_filename
                         elif "illustr" in low or "mask" in low:
                             node.setdefault("inputs", {})["image"] = illustration_filename
+            # Explicit node ID fallback — workflow_api.json uses fixed IDs
+            if "64" in prompt_dict and prompt_dict["64"].get("class_type") == "LoadImage":
+                prompt_dict["64"]["inputs"]["image"] = child_photo_filename
+            if "10" in prompt_dict and prompt_dict["10"].get("class_type") == "LoadImage":
+                prompt_dict["10"]["inputs"]["image"] = illustration_filename
+            if "150" in prompt_dict and prompt_dict["150"].get("class_type") == "LoadImage":
+                prompt_dict["150"]["inputs"]["image"] = mask_filename or illustration_filename
             for node in prompt_dict.values():
                 if isinstance(node, dict) and node.get("class_type") == "CLIPTextEncode":
                     inputs = node.setdefault("inputs", {})

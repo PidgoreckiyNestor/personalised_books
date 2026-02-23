@@ -1,0 +1,17 @@
+# GPU overrides for production servers with NVIDIA GPU
+# Usage: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+services:
+  comfyui:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+
+  celery_worker:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]

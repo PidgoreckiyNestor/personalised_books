@@ -2,6 +2,153 @@
 
 ---
 
+## 0. Docker для початківців — базові концепції
+
+### Що таке Docker?
+
+Docker — це інструмент для запуску програм в ізольованих **контейнерах**. Замість того щоб встановлювати PostgreSQL, Redis, MinIO на свій Mac вручну, ти запускаєш їх як контейнери — кожен у своєму "пісочнику".
+
+```
+Без Docker:                          З Docker:
+─────────────                        ─────────
+brew install postgresql              docker compose up -d
+brew install redis                   (все запустилось)
+brew install minio
+(конфігурація кожного...)
+(конфлікти версій...)
+```
+
+### Ключові терміни
+
+| Термін | Аналогія | Опис |
+|--------|----------|------|
+| **Image** (образ) | Інсталяційний диск | Шаблон, з якого створюється контейнер. Напр. `postgres:15-alpine` — готовий PostgreSQL 15 |
+| **Container** (контейнер) | Запущена програма | Працюючий екземпляр image. Має своє ім'я, порти, дані |
+| **Volume** (том) | Зовнішній жорсткий диск | Постійне сховище даних. Без volume дані зникнуть при видаленні контейнера |
+| **Port mapping** (проброс портів) | Перенаправлення телефону | `"5433:5432"` = порт 5433 на Mac → порт 5432 в контейнері |
+| **Docker Compose** | Менеджер проєкту | Файл `docker-compose.yml` описує які контейнери запускати разом |
+
+### Найважливіші команди
+
+```bash
+# ═══════════════════════════════════════════
+# ЗАПУСК / ЗУПИНКА
+# ═══════════════════════════════════════════
+
+# Запустити всі сервіси з файлу (у фоновому режимі)
+docker compose -f docker-compose.local.yml up -d
+
+# Зупинити всі сервіси (дані в volumes зберігаються)
+docker compose -f docker-compose.local.yml down
+
+# Зупинити і ВИДАЛИТИ всі дані (volumes)
+docker compose -f docker-compose.local.yml down -v
+
+# ═══════════════════════════════════════════
+# МОНІТОРИНГ
+# ═══════════════════════════════════════════
+
+# Показати стан всіх контейнерів
+docker compose -f docker-compose.local.yml ps
+
+# Показати логи (всі сервіси)
+docker compose -f docker-compose.local.yml logs
+
+# Показати логи конкретного сервісу в реальному часі
+docker compose -f docker-compose.local.yml logs -f db
+
+# ═══════════════════════════════════════════
+# ПЕРЕЗАПУСК
+# ═══════════════════════════════════════════
+
+# Перезапустити один сервіс
+docker compose -f docker-compose.local.yml restart db
+
+# Зупинити один сервіс
+docker compose -f docker-compose.local.yml stop db
+
+# Запустити зупинений сервіс
+docker compose -f docker-compose.local.yml start db
+
+# ═══════════════════════════════════════════
+# ДІАГНОСТИКА
+# ═══════════════════════════════════════════
+
+# Зайти "всередину" контейнера (як SSH)
+docker exec -it personalised_books-db-1 bash
+
+# Виконати команду всередині контейнера
+docker exec -it personalised_books-db-1 psql -U books -d books
+
+# Показати всі контейнери (включно зі зупиненими)
+docker ps -a
+
+# Показати використання ресурсів
+docker stats
+```
+
+### Наші сервіси та для чого вони
+
+```
+docker-compose.local.yml запускає 4 сервіси:
+
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  ┌─────────┐    PostgreSQL (db) — порт 5433                      │
+│  │   DB    │    База даних. Зберігає користувачів, замовлення,   │
+│  │ :5433   │    книги, Job'и (статуси генерації). Без неї        │
+│  └─────────┘    backend не запуститься.                           │
+│                                                                  │
+│  ┌─────────┐    Redis — порт 6379                                │
+│  │  Redis  │    Черга повідомлень для Celery. Коли backend        │
+│  │ :6379   │    створює таск (напр. "згенеруй книгу"), він       │
+│  └─────────┘    кладе його в Redis, а Celery worker забирає.     │
+│                                                                  │
+│  ┌─────────┐    MinIO — порти 9000 (API) + 9001 (Web UI)         │
+│  │  MinIO  │    Локальна заміна Amazon S3. Зберігає:             │
+│  │:9000/01 │    - шаблони книг (ілюстрації, шрифти, маніфести)   │
+│  └─────────┘    - фото дітей, згенеровані сторінки, PDF          │
+│                                                                  │
+│  ┌─────────┐    MinIO Init (одноразовий)                         │
+│  │ mc init │    Запускається один раз, створює bucket             │
+│  │         │    "personalized-books" і завершується.              │
+│  └─────────┘                                                     │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Чому саме ці сервіси в Docker, а не Backend/Frontend?**
+
+- DB, Redis, MinIO — це **інфраструктурні** сервіси. Вони не змінюються під час розробки, тому зручно тримати в Docker "як є".
+- Backend, Celery, Frontend — це **твій код**. Їх зручніше запускати напряму на Mac, щоб мати hot-reload, дебагер, швидкий цикл розробки.
+
+### Як Docker Compose зв'язує сервіси
+
+Файл `docker-compose.local.yml` — це "рецепт" для Docker:
+
+```yaml
+services:
+  db:                              # Ім'я сервісу (ти обираєш)
+    image: postgres:15-alpine      # Який image використати
+    environment:                   # Змінні середовища (конфігурація)
+      POSTGRES_USER: books
+      POSTGRES_PASSWORD: books
+      POSTGRES_DB: books
+    ports:
+      - "5433:5432"                # Порт на Mac:порт в контейнері
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Де зберігати дані
+    healthcheck:                   # Як перевірити що сервіс готовий
+      test: ["CMD-SHELL", "pg_isready -U books -d books"]
+```
+
+**Проброс портів `"5433:5432"` — ключовий момент:**
+- PostgreSQL **всередині** контейнера завжди слухає порт `5432`
+- Але **ззовні** (з Mac) він доступний на порті `5433`
+- Це дозволяє уникнути конфлікту, якщо на Mac вже є PostgreSQL на порті 5432
+
+---
+
 ## 1. Загальна стратегія: що запускати локально, а що ні
 
 Не потрібно запускати **все** локально. Проєкт складається з компонентів різної "ваги":
@@ -42,7 +189,7 @@ docker compose -f docker-compose.local.yml up -d
 ```
 
 Це запустить:
-- **PostgreSQL** — `localhost:5432` (user: books / password: books)
+- **PostgreSQL** — `localhost:5433` (user: books / password: books)
 - **Redis** — `localhost:6379`
 - **MinIO** — `localhost:9000` (S3 API), `localhost:9001` (Web Console)
 - **MinIO init** — автоматично створить bucket `personalized-books`
@@ -70,7 +217,7 @@ cp backend/.env.local backend/.env
 Файл `.env.local` вже містить правильні значення для локальної розробки:
 
 ```env
-DATABASE_URL=postgresql+asyncpg://books:books@localhost:5432/books
+DATABASE_URL=postgresql+asyncpg://books:books@localhost:5433/books
 AWS_ENDPOINT_URL=http://localhost:9000
 AWS_ACCESS_KEY_ID=minioadmin
 AWS_SECRET_ACCESS_KEY=minioadmin
@@ -223,7 +370,7 @@ $ cd faceapp-front && npm run dev
 | **Backend API** | http://localhost:8000 | FastAPI |
 | **Swagger UI** | http://localhost:8000/docs | API документація |
 | **Frontend** | http://localhost:5173 | React dev server |
-| **PostgreSQL** | localhost:5432 | books/books/books |
+| **PostgreSQL** | localhost:5433 | books/books/books |
 | **Redis** | localhost:6379 | — |
 | **MinIO S3 API** | http://localhost:9000 | S3 API |
 | **MinIO Console** | http://localhost:9001 | Web UI (minioadmin/minioadmin) |
@@ -352,11 +499,58 @@ LLEN render    # Кількість тасків в render черзі
 
 ## 9. Типові проблеми
 
+### "Port already in use" — конфлікт портів при `docker compose up`
+
+```
+Error response from daemon: Ports are not available: ... bind: address already in use
+```
+
+**Причина:** На Mac вже працює програма на тому ж порті. Найчастіше — PostgreSQL (порт 5432), встановлений через Homebrew, Postgres.app або EDB installer.
+
+**Як знайти що займає порт:**
+```bash
+# Перевірити хто слухає порт 5432
+sudo lsof -nP -iTCP:5432 | head
+
+# Або через netstat
+netstat -an | grep 5432
+```
+
+**Рішення 1 (рекомендоване):** Змінити порт в `docker-compose.local.yml`. Ми вже зробили це — Docker PostgreSQL слухає на порті **5433**, а не 5432:
+```yaml
+ports:
+  - "5433:5432"   # 5433 на Mac → 5432 в контейнері
+```
+Відповідно, в `.env` / `.env.local` — `localhost:5433`.
+
+**Рішення 2:** Зупинити локальний PostgreSQL:
+```bash
+# Якщо встановлений через Homebrew
+brew services stop postgresql
+
+# Якщо EDB installer (/Library/PostgreSQL/...)
+sudo -u postgres /Library/PostgreSQL/17/bin/pg_ctl stop -D /Library/PostgreSQL/17/data
+
+# Якщо Postgres.app — просто закрити додаток
+```
+
+**Рішення 3:** Використати вже встановлений PostgreSQL замість Docker:
+```bash
+# Створити базу в існуючому PostgreSQL
+psql -U postgres -c "CREATE USER books WITH PASSWORD 'books';"
+psql -U postgres -c "CREATE DATABASE books OWNER books;"
+
+# В .env використати порт 5432
+DATABASE_URL=postgresql+asyncpg://books:books@localhost:5432/books
+```
+
 ### "Connection refused" до PostgreSQL
 
 **Причина:** asyncpg vs psycopg driver.
 - Для локального запуску: `DATABASE_URL=postgresql+asyncpg://...`
 - Для Docker: `DATABASE_URL=postgresql+psycopg://...`
+
+Також перевір що порт правильний — `5433` для Docker, `5432` якщо PostgreSQL встановлений напряму.
 
 ### MinIO "bucket not found"
 

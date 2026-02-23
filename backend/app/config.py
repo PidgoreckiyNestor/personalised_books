@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     HF_HOME: str = "/models/hf"
     QWEN_MODEL_ID: str = "Qwen/Qwen2-VL-2B-Instruct"
 
+    MOCK_ML: bool = False
+
     COMFY_BASE_URL: str = "http://127.0.0.1:8188"
     IPADAPTER_STRENGTH_SCALE: float = 1.0
 

@@ -402,14 +402,27 @@ def analyze_photo_task(self, job_id: str, child_photo_uri: str, illustration_id:
             await db.refresh(job)
 
             try:
-                from .inference.vision_qwen import analyze_image_pil
                 from .config import settings
 
-                pil = _s3_read_private_to_pil(job.child_photo_uri)
+                if settings.MOCK_ML:
+                    logger.info(f"MOCK_ML enabled — skipping Qwen2-VL for job: {job_id}")
+                    analysis_result = {
+                        "face_detected": True,
+                        "gender": child_gender or "girl",
+                        "age_estimate": "5-7",
+                        "hair_color": "brown",
+                        "hair_style": "straight",
+                        "skin_tone": "light",
+                        "eye_color": "brown",
+                    }
+                else:
+                    from .inference.vision_qwen import analyze_image_pil
 
-                # Analyze with Qwen2-VL
-                logger.info(f"Analyzing photo with Qwen2-VL for job: {job_id}")
-                analysis_result = analyze_image_pil(pil, settings.QWEN_MODEL_ID)
+                    pil = _s3_read_private_to_pil(job.child_photo_uri)
+
+                    # Analyze with Qwen2-VL
+                    logger.info(f"Analyzing photo with Qwen2-VL for job: {job_id}")
+                    analysis_result = analyze_image_pil(pil, settings.QWEN_MODEL_ID)
 
                 job.analysis_json = analysis_result
 

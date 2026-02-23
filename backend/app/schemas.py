@@ -178,6 +178,7 @@ class Personalization(BaseModel):
     preview: Optional[PreviewResponse] = None
     cartItemId: Optional[str] = None
     generationRetry: Optional[GenerationRetry] = None
+    face_detected: Optional[bool] = None
 
 class AvatarUploadResponse(BaseModel):
     uploadId: str

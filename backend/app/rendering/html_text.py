@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import html
 import io
 import mimetypes
+import os
 import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
@@ -112,7 +114,7 @@ def _build_text_shadow_css(
 
 _ALLOWED_TITLE_HTML_TAG_RE = re.compile(r"<[^>]+>")
 _ALLOWED_TITLE_HTML_SPAN_OPEN_RE = re.compile(
-    r"""^<\s*span\s+class\s*=\s*(?P<q>['"])\s*(?P<cls>title-big|title-small)\s*(?P=q)\s*>\s*$""",
+    r"""^<\s*span\s+class\s*=\s*(?P<q>['"])\s*(?P<cls>title-big|title-small|bold|large|bold\s+large|large\s+bold)\s*(?P=q)\s*>\s*$""",
     flags=re.IGNORECASE,
 )
 _ALLOWED_TITLE_HTML_SPAN_CLOSE_RE = re.compile(r"^<\s*/\s*span\s*>\s*$", flags=re.IGNORECASE)
@@ -216,6 +218,7 @@ def _build_html(
     settings_dict: Dict[str, Any],
     *,
     allow_title_html: bool,
+    font_bold_data_uri: str = "",
 ) -> str:
     target_size = settings_dict["target_size"]
     stroke_width = int(settings_dict.get("stroke_width", 0) or 0)
@@ -225,6 +228,8 @@ def _build_html(
         settings_dict.get("title_big_size", max(int(settings_dict["font_size"]) * 2, int(settings_dict["font_size"]) + 80))
     )
     title_small_size = int(settings_dict.get("title_small_size", int(settings_dict["font_size"])))
+    bold_size = int(settings_dict.get("bold_size", int(settings_dict["font_size"])))
+    large_size = int(settings_dict.get("large_size", int(settings_dict["font_size"]) + 30))
 
     text_shadow_css = _build_text_shadow_css(
         stroke_width=stroke_width,
@@ -246,9 +251,19 @@ def _build_html(
         font_face = f"""
 @font-face {{
   font-family: 'CustomFont';
+  font-weight: 400;
   src: url('{font_data_uri}');
 }}
 """.strip()
+        if font_bold_data_uri:
+            font_face += f"""
+
+@font-face {{
+  font-family: 'CustomFont';
+  font-weight: 700;
+  src: url('{font_bold_data_uri}');
+}}
+"""
 
     return f"""
 <!DOCTYPE html>
@@ -269,7 +284,7 @@ html, body {{
 body {{
   background: url('{bg_data_uri}') center center / cover no-repeat;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
 }}
 
@@ -320,6 +335,23 @@ body {{
   line-height: 1.05;
   display: inline-block;
 }}
+
+.bold {{
+  font-size: {bold_size}px;
+  font-weight: 700;
+  display: inline;
+}}
+
+.large {{
+  font-size: {large_size}px;
+  display: inline;
+}}
+
+.bold.large {{
+  font-size: {large_size}px;
+  font-weight: 700;
+  display: inline;
+}}
 </style>
 </head>
 
@@ -366,6 +398,7 @@ async def render_text_layers_over_image(
             bg_data_uri = _pil_to_png_data_uri(cur, int(output_px))
 
             font_data_uri = ""
+            font_bold_data_uri = ""
             font_uri = None
             # Allow font_uri either as explicit field (future) or embedded into style dict.
             if isinstance(getattr(layer, "font_uri", None), str) and getattr(layer, "font_uri"):
@@ -378,12 +411,29 @@ async def render_text_layers_over_image(
                     font_cache[font_uri] = _font_to_data_uri(font_uri)
                 font_data_uri = font_cache[font_uri]
 
+                # Auto-derive bold variant: "Rubik-Regular.ttf" → "Rubik-Bold.ttf"
+                font_bold_uri = None
+                if isinstance(layer.style, dict) and isinstance(layer.style.get("font_bold_uri"), str):
+                    font_bold_uri = layer.style["font_bold_uri"]
+                elif "Regular" in os.path.basename(font_uri):
+                    font_bold_uri = font_uri.replace("Regular", "Bold")
+
+                if font_bold_uri:
+                    if font_bold_uri not in font_cache:
+                        try:
+                            font_cache[font_bold_uri] = _font_to_data_uri(font_bold_uri)
+                        except Exception:
+                            logger.debug(f"Bold font variant not found: {font_bold_uri}")
+                            font_cache[font_bold_uri] = ""
+                    font_bold_data_uri = font_cache[font_bold_uri]
+
             html_doc = _build_html(
                 bg_data_uri=bg_data_uri,
                 font_data_uri=font_data_uri,
                 text_plain_or_html=text_plain_or_html,
                 settings_dict=style,
                 allow_title_html=allow_title_html,
+                font_bold_data_uri=font_bold_data_uri,
             )
 
             page = await browser.new_page(viewport={"width": int(output_px), "height": int(output_px)})
@@ -396,7 +446,9 @@ async def render_text_layers_over_image(
                     return await route.abort()
 
                 await page.route("**/*", _route)
-                await page.set_content(html_doc, wait_until="networkidle")
+                await page.set_content(html_doc, wait_until="load")
+                # Give the browser time to load embedded data-URI fonts.
+                await asyncio.sleep(0.3)
                 png_bytes = await page.screenshot(type="png")
             finally:
                 await page.close()

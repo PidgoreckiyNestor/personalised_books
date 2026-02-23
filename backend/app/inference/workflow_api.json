@@ -420,7 +420,8 @@
   },
   "151": {
     "inputs": {
-      "provider": "CUDA"
+      "provider": "CUDA",
+      "model_name": "buffalo_l"
     },
     "class_type": "IPAdapterInsightFaceLoader",
     "_meta": {

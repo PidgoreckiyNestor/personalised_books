@@ -186,6 +186,10 @@ def _job_to_personalization(job: Job, preview: Optional[PreviewResponse] = None)
         except Exception:
             avatar_url = None
 
+    face_detected = None
+    if job.analysis_json and isinstance(job.analysis_json, dict):
+        face_detected = job.analysis_json.get("face_detected")
+
     return Personalization(
         id=job.job_id,
         slug=job.slug,
@@ -198,6 +202,7 @@ def _job_to_personalization(job: Job, preview: Optional[PreviewResponse] = None)
         avatarUrl=avatar_url,
         preview=preview,
         cartItemId=job.cart_item_id,
+        face_detected=face_detected,
     )
 
 
@@ -921,6 +926,10 @@ def _job_to_personalization(job: Job, preview: Optional[PreviewResponse] = None)
         except Exception:
             avatar_url = None
 
+    face_detected = None
+    if job.analysis_json and isinstance(job.analysis_json, dict):
+        face_detected = job.analysis_json.get("face_detected")
+
     return Personalization(
         id=job.job_id,
         slug=job.slug,
@@ -934,6 +943,7 @@ def _job_to_personalization(job: Job, preview: Optional[PreviewResponse] = None)
         preview=preview,
         cartItemId=job.cart_item_id,
         generationRetry=_build_generation_retry(job),
+        face_detected=face_detected,
     )
 
 @router.post("/upload_and_analyze/", response_model=Personalization, status_code=201)
