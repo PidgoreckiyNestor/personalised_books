@@ -98,7 +98,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: python -m celery -A app.workers.celery_app worker --loglevel=info --concurrency=1 -Q gpu,celery
+    command: python -m celery -A app.workers.celery_app worker --loglevel=info --concurrency=3 -Q gpu,celery
     depends_on:
       db:
         condition: service_healthy

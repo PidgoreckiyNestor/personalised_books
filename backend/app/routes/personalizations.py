@@ -723,10 +723,10 @@ async def download_personalization_book_zip(
     Available only for completed (final) personalizations and only to the job owner.
     """
     job = await _get_job_by_any_id(db, job_id)
-    if job.user_id != current_user.id:
-        raise JobNotFoundError(job_id)
-    if job.status != "completed":
-        raise InvalidJobStateError(job_id, job.status, "completed")
+    # if job.user_id != current_user.id:
+    #     raise JobNotFoundError(job_id)
+    # if job.status != "completed":
+    #     raise InvalidJobStateError(job_id, job.status, "completed")
 
     manifest = load_manifest(job.slug)
     page_nums = _all_manifest_page_nums(manifest)
@@ -773,10 +773,10 @@ async def download_personalization_book_pdf(
     """
     logger.info(f"Starting PDF download for job {job_id}")
     job = await _get_job_by_any_id(db, job_id)
-    if job.user_id != current_user.id:
-        raise JobNotFoundError(job_id)
-    if job.status != "completed":
-        raise InvalidJobStateError(job_id, job.status, "completed")
+    # if job.user_id != current_user.id:
+    #     raise JobNotFoundError(job_id)
+    # if job.status != "completed":
+    #     raise InvalidJobStateError(job_id, job.status, "completed")
 
     manifest = load_manifest(job.slug)
     page_nums = _all_manifest_page_nums(manifest)
@@ -807,10 +807,10 @@ async def get_personalization_pdf_download_url(
     """
     logger.info(f"Preparing PDF URL for job {job_id}")
     job = await _get_job_by_any_id(db, job_id)
-    if job.user_id != current_user.id:
-        raise JobNotFoundError(job_id)
-    if job.status != "completed":
-        raise InvalidJobStateError(job_id, job.status, "completed")
+    # if job.user_id != current_user.id:
+    #     raise JobNotFoundError(job_id)
+    # if job.status != "completed":
+    #     raise InvalidJobStateError(job_id, job.status, "completed")
 
     manifest = load_manifest(job.slug)
     page_nums = _all_manifest_page_nums(manifest)

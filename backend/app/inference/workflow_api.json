@@ -1,12 +1,12 @@
 {
   "3": {
     "inputs": {
-      "seed": 419478514358630,
+      "seed": 843515276250665,
       "steps": 30,
-      "cfg": 5.5,
-      "sampler_name": "dpmpp_3m_sde_gpu",
+      "cfg": 4,
+      "sampler_name": "dpmpp_2m_sde_gpu",
       "scheduler": "exponential",
-      "denoise": 0.55,
+      "denoise": 0.6,
       "model": [
         "61",
         0
@@ -40,7 +40,7 @@
   },
   "6": {
     "inputs": {
-      "text": "young girl, 5-6 years old, long dark brown curly hair, voluminous curls, natural hair texture, big dark brown almond-shaped eyes, olive tan skin, small nose, soft round face, long eyelashes, natural dark eyebrows",
+      "text": "5 year old girl, long dark brown tightly curly voluminous hair, black-brown expressive eyes, warm olive skin, joyful bright smile, sparkling happy eyes, excited expression, rosy cheeks",
       "clip": [
         "4",
         1
@@ -71,7 +71,7 @@
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "65",
+        "183",
         0
       ]
     },
@@ -82,25 +82,11 @@
   },
   "10": {
     "inputs": {
-      "image": "page_19_base.png"
+      "image": "illustration_dc45be36b9a24811b43540c6034ee317.png"
     },
     "class_type": "LoadImage",
     "_meta": {
       "title": "Load Image"
-    }
-  },
-  "16": {
-    "inputs": {
-      "kernel_size": 15,
-      "sigma": 10,
-      "mask": [
-        "148",
-        0
-      ]
-    },
-    "class_type": "ImpactGaussianBlurMask",
-    "_meta": {
-      "title": "Gaussian Blur Mask"
     }
   },
   "18": {
@@ -119,12 +105,12 @@
         2
       ],
       "pixels": [
-        "10",
+        "168",
         0
       ],
       "mask": [
-        "16",
-        0
+        "168",
+        1
       ]
     },
     "class_type": "InpaintModelConditioning",
@@ -134,7 +120,7 @@
   },
   "19": {
     "inputs": {
-      "text": "cross-eyed, mismatched eyes, squint, dead eyes, glossy eyes, lazy eye, asymmetric face, deformed, blurry, bad anatomy, extra fingers, malformed hands, poorly drawn face, ugly, disfigured, watermark, text, low quality, jpeg artifacts, plastic skin, flat lighting, uncanny valley",
+      "text": "deformed, ugly, blurry, bad anatomy, extra fingers, extra limbs, disfigured face, distorted face, bad eyes, crossed eyes, bad teeth, extra teeth, old looking, adult features, realistic photo, scary, dark, horror",
       "clip": [
         "4",
         1
@@ -155,7 +141,7 @@
       "pose_estimator": "dw-ll_ucoco_384_bs5.torchscript.pt",
       "scale_stick_for_xinsr_cn": "disable",
       "image": [
-        "10",
+        "168",
         0
       ]
     },
@@ -209,7 +195,7 @@
       "safe": "enable",
       "resolution": 512,
       "image": [
-        "10",
+        "168",
         0
       ]
     },
@@ -260,13 +246,13 @@
   },
   "61": {
     "inputs": {
-      "weight": 0.9,
+      "weight": 1.1,
       "weight_faceidv2": 1,
       "weight_type": "ease in-out",
       "combine_embeds": "concat",
       "start_at": 0,
       "end_at": 1,
-      "embeds_scaling": "K+mean(V) w/ C penalty",
+      "embeds_scaling": "K+V",
       "model": [
         "63",
         0
@@ -280,8 +266,8 @@
         0
       ],
       "attn_mask": [
-        "16",
-        0
+        "168",
+        1
       ],
       "clip_vision": [
         "152",
@@ -300,7 +286,7 @@
   "63": {
     "inputs": {
       "preset": "FACEID PLUS V2",
-      "lora_strength": 0.44,
+      "lora_strength": 0.75,
       "provider": "CUDA",
       "model": [
         "4",
@@ -314,30 +300,11 @@
   },
   "64": {
     "inputs": {
-      "image": "Screenshot 2026-02-04 at 01.01.29.png"
+      "image": "child_a7b081dbdb2c4290a273b1501fd2f605.png"
     },
     "class_type": "LoadImage",
     "_meta": {
       "title": "Load Image"
-    }
-  },
-  "65": {
-    "inputs": {
-      "method": "skimage",
-      "factor": 1,
-      "device": "cpu",
-      "image": [
-        "8",
-        0
-      ],
-      "reference": [
-        "10",
-        0
-      ]
-    },
-    "class_type": "ImageHistogramMatch+",
-    "_meta": {
-      "title": "🔧 Image Histogram Match"
     }
   },
   "117": {
@@ -374,26 +341,13 @@
         0
       ],
       "images": [
-        "65",
+        "8",
         0
       ]
     },
     "class_type": "ImageUpscaleWithModelBatched",
     "_meta": {
       "title": "Image Upscale With Model Batched"
-    }
-  },
-  "140": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": [
-        "137",
-        0
-      ]
-    },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Save Image"
     }
   },
   "148": {
@@ -411,7 +365,7 @@
   },
   "150": {
     "inputs": {
-      "image": "Group 1 (2).png"
+      "image": "mask_8ade1da2947e45eca25c8cb1be58d716.png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -435,6 +389,113 @@
     "class_type": "CLIPVisionLoader",
     "_meta": {
       "title": "Load CLIP Vision"
+    }
+  },
+  "166": {
+    "inputs": {
+      "destination": [
+        "182",
+        0
+      ],
+      "source": [
+        "137",
+        0
+      ],
+      "mask": [
+        "179",
+        0
+      ],
+      "bbox": [
+        "168",
+        2
+      ]
+    },
+    "class_type": "ImageUncropByMask",
+    "_meta": {
+      "title": "Image Uncrop By Mask"
+    }
+  },
+  "168": {
+    "inputs": {
+      "base_resolution": 512,
+      "padding": 50,
+      "min_crop_resolution": 128,
+      "max_crop_resolution": 512,
+      "image": [
+        "182",
+        0
+      ],
+      "mask": [
+        "148",
+        0
+      ]
+    },
+    "class_type": "ImageCropByMaskAndResize",
+    "_meta": {
+      "title": "Image Crop By Mask And Resize"
+    }
+  },
+  "179": {
+    "inputs": {
+      "kernel_size": 41,
+      "sigma": 30,
+      "mask": [
+        "168",
+        1
+      ]
+    },
+    "class_type": "ImpactGaussianBlurMask",
+    "_meta": {
+      "title": "Gaussian Blur Mask"
+    }
+  },
+  "182": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "interpolation": "nearest",
+      "method": "stretch",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  },
+  "183": {
+    "inputs": {
+      "method": "skimage",
+      "factor": 1,
+      "device": "gpu",
+      "image": [
+        "166",
+        0
+      ],
+      "reference": [
+        "182",
+        0
+      ]
+    },
+    "class_type": "ImageHistogramMatch+",
+    "_meta": {
+      "title": "🔧 Image Histogram Match"
+    }
+  },
+  "184": {
+    "inputs": {
+      "images": [
+        "117",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
     }
   }
 }

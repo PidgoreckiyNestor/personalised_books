@@ -2,6 +2,7 @@ import asyncio
 import io
 import json
 import os
+import random
 import traceback
 import uuid
 from typing import Dict, Optional
@@ -61,6 +62,82 @@ def _run_face_transfer(
     from .inference.comfy_runner import run_face_transfer
 
     return run_face_transfer(child_pil, base_uri, prompt, negative, randomize_seed=randomize_seed)
+
+
+def _submit_face_transfer(
+    child_pil: Image.Image,
+    base_uri: str,
+    prompt: str,
+    negative: str,
+    randomize_seed: bool = False,
+) -> str:
+    """
+    Upload images + queue prompt in ComfyUI, return prompt_id without waiting.
+    """
+    from .inference.comfy_runner import submit_face_transfer, _build_face_mask
+    import random
+
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_REGION_NAME,
+        endpoint_url=settings.AWS_ENDPOINT_URL,
+    )
+
+    if base_uri.startswith("s3://"):
+        uri_parts = base_uri.replace("s3://", "").split("/", 1)
+        bucket = uri_parts[0]
+        key = uri_parts[1] if len(uri_parts) > 1 else ""
+    else:
+        bucket = settings.S3_BUCKET_NAME
+        key = base_uri
+
+    # Try loading illustration
+    candidate_keys = [key]
+    if key.lower().endswith(".png"):
+        candidate_keys.append(key[:-4] + ".jpg")
+        candidate_keys.append(key[:-4] + ".jpeg")
+    elif key.lower().endswith((".jpg", ".jpeg")):
+        base = key[:-4] if key.lower().endswith(".jpg") else key[:-5]
+        candidate_keys.append(base + ".png")
+
+    illustration_pil = None
+    for candidate in candidate_keys:
+        try:
+            obj = s3_client.get_object(Bucket=bucket, Key=candidate)
+            illustration_pil = Image.open(io.BytesIO(obj["Body"].read())).convert("RGB")
+            key = candidate
+            break
+        except Exception:
+            pass
+
+    if illustration_pil is None:
+        raise RuntimeError(f"Failed to load illustration from {base_uri}")
+
+    # Try loading explicit mask
+    explicit_mask_pil = None
+    try:
+        base_name = os.path.basename(key)
+        root = base_name.rsplit(".", 1)[0]
+        ext = ".png"
+        mask_key = key.replace(base_name, f"{root}_mask{ext}")
+        try:
+            mobj = s3_client.get_object(Bucket=bucket, Key=mask_key)
+            explicit_mask_pil = Image.open(io.BytesIO(mobj["Body"].read())).convert("RGB")
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+    seed = random.randint(1, 2**31 - 1) if randomize_seed else None
+    return submit_face_transfer(child_pil, illustration_pil, prompt, negative, mask_pil=explicit_mask_pil, seed=seed)
+
+
+def _collect_face_transfer(prompt_id: str) -> Image.Image:
+    """Wait for ComfyUI result by prompt_id."""
+    from .inference.comfy_runner import collect_face_transfer
+    return collect_face_transfer(prompt_id)
 
 
 def _has_face(pil_img: Image.Image) -> bool:
@@ -202,6 +279,9 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
             if job.child_photo_uri:
                 child_pil = _s3_read_private_to_pil(job.child_photo_uri)
 
+            # Phase 1: Submit all face swap prompts to ComfyUI at once
+            pending = []  # list of (page_num, prompt_id) for face swap pages
+            non_swap_pages = []  # list of (page_num, spec) for pages without face swap
             for page_num in page_nums:
                 spec = manifest.page_by_num(page_num)
                 if not spec:
@@ -212,30 +292,38 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
                         raise RuntimeError("child_photo_uri is missing; cannot run face swap")
                     prompt = (spec.prompt or job.common_prompt or "child portrait").strip()
                     negative = (spec.negative_prompt or "low quality, bad face, distorted").strip()
-                    out_img = _run_face_transfer(
+                    prompt_id = _submit_face_transfer(
                         child_pil,
                         spec.base_uri,
                         prompt,
                         negative,
                         randomize_seed=randomize_seed_flag,
                     )
+                    pending.append((page_num, prompt_id))
+                    logger.info(f"Queued face swap for page {page_num}: {prompt_id}")
                 else:
-                    out_img = _s3_read_private_to_pil(spec.base_uri)
+                    non_swap_pages.append((page_num, spec))
 
+            # Phase 2: Process non-face-swap pages immediately
+            for page_num, spec in non_swap_pages:
+                out_img = _s3_read_private_to_pil(spec.base_uri)
                 target = manifest.output.page_size_px
                 if out_img.size != (target, target):
                     out_img = out_img.resize((target, target), Image.Resampling.LANCZOS)
-
                 bg_key = _layout_bg_key(job_id, page_num)
                 bg_uri = _s3_write_pil(out_img, bg_key, dpi=manifest.output.dpi)
-                await _upsert_artifact(
-                    db,
-                    job_id=job_id,
-                    stage=stage,
-                    kind="page_bg_png",
-                    s3_uri=bg_uri,
-                    page_num=page_num,
-                )
+                await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=page_num)
+
+            # Phase 3: Collect face swap results in order
+            for page_num, prompt_id in pending:
+                out_img = _collect_face_transfer(prompt_id)
+                target = manifest.output.page_size_px
+                if out_img.size != (target, target):
+                    out_img = out_img.resize((target, target), Image.Resampling.LANCZOS)
+                bg_key = _layout_bg_key(job_id, page_num)
+                bg_uri = _s3_write_pil(out_img, bg_key, dpi=manifest.output.dpi)
+                await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=page_num)
+                logger.info(f"Collected face swap result for page {page_num}")
 
             if randomize_seed_flag and stage == "prepay":
                 base_data = job.analysis_json if isinstance(job.analysis_json, dict) else {}
@@ -440,19 +528,19 @@ def analyze_photo_task(self, job_id: str, child_photo_uri: str, illustration_id:
 
                 job.analysis_json = analysis_result
 
-                # Build prompt from analysis
-                if analysis_result.get("face_detected"):
-                    prompt_parts = ["child portrait"]
-                    if analysis_result.get("gender"):
-                        prompt_parts.append(analysis_result["gender"])
-                    if analysis_result.get("hair_color"):
-                        prompt_parts.append(f"{analysis_result['hair_color']} hair")
-                    if analysis_result.get("hair_style"):
-                        prompt_parts.append(f"{analysis_result['hair_style']} hairstyle")
-                    prompt_parts.append("high quality")
-                    job.common_prompt = ", ".join(prompt_parts)
-                else:
-                    job.common_prompt = "child portrait, neutral, high quality"
+                # # Build prompt from analysis
+                # if analysis_result.get("face_detected"):
+                #     prompt_parts = ["child portrait"]
+                #     if analysis_result.get("gender"):
+                #         prompt_parts.append(analysis_result["gender"])
+                #     if analysis_result.get("hair_color"):
+                #         prompt_parts.append(f"{analysis_result['hair_color']} hair")
+                #     if analysis_result.get("hair_style"):
+                #         prompt_parts.append(f"{analysis_result['hair_style']} hairstyle")
+                #     prompt_parts.append("high quality")
+                #     job.common_prompt = ", ".join(prompt_parts)
+                # else:
+                job.common_prompt = "5 year old girl, long dark brown tightly curly voluminous hair falling past shoulders, dark-black brown expressive eyes, warm olive skin, joyful bright smile showing teeth, sparkling happy eyes, excited expression"
 
                 job.status = "analyzing_completed"
                 await db.commit()

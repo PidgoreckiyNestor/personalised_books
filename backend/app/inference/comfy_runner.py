@@ -577,6 +577,61 @@ def get_image_result(prompt_id: str, server_address: str, timeout: int = 300) ->
 
     raise TimeoutError(f"ComfyUI generation timeout after {timeout}s")
 
+def submit_face_transfer(
+    child_pil: Image.Image,
+    illustration_pil: Image.Image,
+    prompt: str,
+    negative_prompt: str = "",
+    mask_pil: Optional[Image.Image] = None,
+    seed: Optional[int] = None,
+) -> str:
+    """
+    Upload images and queue a face transfer prompt in ComfyUI.
+    Returns prompt_id without waiting for the result.
+    """
+    server_address = settings.COMFY_BASE_URL.rstrip("/")
+    logger.info(f"Starting face transfer with ComfyUI: {server_address}")
+
+    if mask_pil is None:
+        mask_pil = _build_face_mask(illustration_pil)
+
+    illustration_prepared = illustration_pil.convert("RGB")
+    child_filename = f"child_{uuid.uuid4().hex}.png"
+    illustration_filename = f"illustration_{uuid.uuid4().hex}.png"
+
+    child_uploaded = upload_image_to_comfy(child_pil, child_filename, server_address)
+    illustration_uploaded = upload_image_to_comfy(illustration_prepared, illustration_filename, server_address)
+    mask_pil_rgb = mask_pil.convert("RGB")
+    mask_filename_gen = f"mask_{uuid.uuid4().hex}.png"
+    mask_filename = upload_image_to_comfy(mask_pil_rgb, mask_filename_gen, server_address)
+
+    logger.info(f"Sending prompt to ComfyUI - Positive: {prompt}")
+    logger.info(f"Sending prompt to ComfyUI - Negative: {negative_prompt}")
+
+    workflow = build_comfy_workflow(
+        child_uploaded,
+        illustration_uploaded,
+        prompt,
+        negative_prompt,
+        mask_filename=mask_filename,
+        use_alpha_for_mask=False,
+        seed=seed,
+    )
+
+    prompt_id = queue_prompt(workflow, server_address)
+    return prompt_id
+
+
+def collect_face_transfer(prompt_id: str, timeout: int = 300) -> Image.Image:
+    """
+    Wait for a previously submitted ComfyUI prompt and return the result image.
+    """
+    server_address = settings.COMFY_BASE_URL.rstrip("/")
+    result_img = get_image_result(prompt_id, server_address, timeout=timeout)
+    logger.info(f"Face transfer completed successfully: {prompt_id}")
+    return result_img
+
+
 def run_face_transfer_comfy_api(
     child_pil: Image.Image,
     illustration_pil: Image.Image,
@@ -586,53 +641,10 @@ def run_face_transfer_comfy_api(
     seed: Optional[int] = None,
 ) -> Image.Image:
     """
-    Run face transfer using ComfyUI REST API.
+    Run face transfer using ComfyUI REST API (submit + wait).
     """
-    server_address = settings.COMFY_BASE_URL.rstrip("/")
-    logger.info(f"Starting face transfer with ComfyUI: {server_address}")
-    
-
-    # Important: Do NOT rely on alpha-channel masks. In ComfyUI, `LoadImage` typically produces
-    # a 3-channel IMAGE tensor; `ImageToMask(channel=alpha)` crashes with:
-    #   "index 3 is out of bounds for dimension 3 with size 3"
-    # So we always provide an explicit mask image and keep `ImageToMask` on a real RGB channel.
-    if mask_pil is None:
-        mask_pil = _build_face_mask(illustration_pil)
-
-    illustration_prepared = illustration_pil.convert("RGB")
-    child_filename = f"child_{uuid.uuid4().hex}.png"
-    illustration_filename = f"illustration_{uuid.uuid4().hex}.png"
-    mask_filename = None
-    
-    child_uploaded = upload_image_to_comfy(child_pil, child_filename, server_address)
-    illustration_uploaded = upload_image_to_comfy(illustration_prepared, illustration_filename, server_address)
-    # Ensure a stable 3-channel mask image so workflows that read "red" don't break.
-    mask_pil_rgb = mask_pil.convert("RGB")
-    mask_filename_gen = f"mask_{uuid.uuid4().hex}.png"
-    mask_filename = upload_image_to_comfy(mask_pil_rgb, mask_filename_gen, server_address)
-    
-
-    logger.info(f"Sending prompt to ComfyUI - Positive: {prompt}")
-    logger.info(f"Sending prompt to ComfyUI - Negative: {negative_prompt}")
-    
-
-    workflow = build_comfy_workflow(
-        child_uploaded,
-        illustration_uploaded,
-        prompt,
-        negative_prompt,
-        mask_filename=mask_filename,
-        # Never use alpha-channel-based masking; always use explicit mask file.
-        use_alpha_for_mask=False,
-        seed=seed,
-    )
-    
-
-    prompt_id = queue_prompt(workflow, server_address)
-    result_img = get_image_result(prompt_id, server_address, timeout=300)
-    
-    logger.info(f"Face transfer completed successfully")
-    return result_img
+    prompt_id = submit_face_transfer(child_pil, illustration_pil, prompt, negative_prompt, mask_pil, seed)
+    return collect_face_transfer(prompt_id)
 
 def run_face_transfer_local(
     child_pil: Image.Image,
@@ -778,7 +790,7 @@ def run_face_transfer(
         for mc in mask_candidates:
             try:
                 mobj = s3.get_object(Bucket=bucket, Key=mc)
-                explicit_mask_pil = Image.open(io.BytesIO(mobj["Body"].read())).convert("L")
+                explicit_mask_pil = Image.open(io.BytesIO(mobj["Body"].read())).convert("RGB")
                 break
             except Exception:
                 explicit_mask_pil = None
