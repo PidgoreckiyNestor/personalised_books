@@ -184,9 +184,9 @@
       "description": "Дівчинка з гарячим какао",
       "text_layers": [
         {
-          "text_template": "**{child_name}** зачерпнула гарячого какао, і посміхнулась: **\"Смакує, як обійми!\"**",
+          "text_template": "**{child_name}** зачерпнула гарячого какао, і посміхнулась: \n**\"Смакує, як обійми!\"**",
           "position": "top-right",
-          "box_width": 0.89,
+          "box_width": 0.9,
           "text_align": "right"
         }
       ]
@@ -215,7 +215,7 @@
       "text_layers": [
         {
           "text_template": "**Вежі з морозива** сягали неба, вкриті глазур'ю рожевою й блакитною.",
-          "position": "bottom-center",
+          "position": "top-center",
           "box_width": 0.97,
           "text_align": "center"
         }
@@ -364,8 +364,8 @@
       "text_layers": [
         {
           "text_template": "Поїзд зупинився у **Кексовому селі**, де кожен будиночок — маленьке тістечко. Рожеві дахи з глазурі, брукована вулиця, і запах свіжої випічки скрізь.",
-          "position": "bottom-center",
-          "box_width": 0.94,
+          "position": "top-center",
+          "box_width": 0.9,
           "text_align": "left"
         }
       ]
@@ -408,9 +408,9 @@
       "text_layers": [
         {
           "text_template": "У замку лунала **чарівна музика**, танцюристи кружляли у святкових сукнях.",
-          "position": "top-center",
-          "box_width": 0.97,
-          "text_align": "left"
+          "position": "bottom-right",
+          "box_width": 0.8,
+          "text_align": "right"
         }
       ]
     },
