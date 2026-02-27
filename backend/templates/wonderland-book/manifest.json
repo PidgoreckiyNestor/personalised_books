@@ -93,7 +93,6 @@
           "font_weight": 900,
           "stroke_width": 0,
           "letter_spacing": 0.3
-
         },
         "accent": {
           "font_size": "16pt"
@@ -111,7 +110,7 @@
           "position": "middle-center",
           "box_width": 0.49,
           "text_align": "center",
-          "offset_y": -15.0
+          "offset_x": 15
         }
       ]
     }
@@ -186,7 +185,7 @@
         {
           "text_template": "**{child_name}** зачерпнула гарячого какао, і посміхнулась: \n**\"Смакує, як обійми!\"**",
           "position": "top-right",
-          "box_width": 0.9,
+          "box_width": 1,
           "text_align": "right"
         }
       ]
@@ -342,7 +341,7 @@
       "text_layers": [
         {
           "text_template": "**{child_name}** дивилась крізь золоте віконце, як повз пропливали **повітряні кораблі.** Увесь світ внизу сяяв і мерехтів, наче **розсипані зірки.**",
-          "position": "top-center",
+          "position": "top-left",
           "box_width": 0.80,
           "text_align": "left"
         }
@@ -360,22 +359,22 @@
       "base_uri": "templates/wonderland-book/pages/page_18_base.png",
       "needs_face_swap": false,
       "availability": { "prepay": true, "postpay": false },
-      "description": "Кексове село - пейзаж",
-      "text_layers": [
-        {
-          "text_template": "Поїзд зупинився у **Кексовому селі**, де кожен будиночок — маленьке тістечко. Рожеві дахи з глазурі, брукована вулиця, і запах свіжої випічки скрізь.",
-          "position": "top-center",
-          "box_width": 0.9,
-          "text_align": "left"
-        }
-      ]
+      "description": "Кексове село - пейзаж"
     },
     {
       "page_num": 19,
       "base_uri": "templates/wonderland-book/pages/page_19_base.png",
       "needs_face_swap": true,
       "availability": { "prepay": true, "postpay": false },
-      "description": "Дівчинка у кексовому селі"
+      "description": "Дівчинка у кексовому селі",
+      "text_layers": [
+        {
+          "text_template": "Поїзд зупинився у **Кексовому селі**, де кожен будиночок — маленьке тістечко. Рожеві дахи з глазурі, брукована вулиця, і запах свіжої випічки скрізь.",
+          "position": "top-center",
+          "box_width": 0.9,
+          "text_align": "right"
+        }
+      ]
     },
     {
       "page_num": 20,
@@ -408,9 +407,9 @@
       "text_layers": [
         {
           "text_template": "У замку лунала **чарівна музика**, танцюристи кружляли у святкових сукнях.",
-          "position": "bottom-right",
+          "position": "top-left",
           "box_width": 0.8,
-          "text_align": "right"
+          "text_align": "left"
         }
       ]
     },
