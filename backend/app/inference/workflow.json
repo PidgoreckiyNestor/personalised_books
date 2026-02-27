@@ -1,8 +1,8 @@
 {
   "id": "00000000-0000-0000-0000-000000000000",
   "revision": 0,
-  "last_node_id": 183,
-  "last_link_id": 97,
+  "last_node_id": 184,
+  "last_link_id": 98,
   "nodes": [
     {
       "id": 4,
@@ -67,7 +67,7 @@
         46
       ],
       "flags": {},
-      "order": 24,
+      "order": 25,
       "mode": 0,
       "inputs": [
         {
@@ -109,7 +109,7 @@
         270
       ],
       "flags": {},
-      "order": 28,
+      "order": 29,
       "mode": 0,
       "inputs": [
         {
@@ -139,7 +139,7 @@
         138
       ],
       "flags": {},
-      "order": 18,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -212,7 +212,7 @@
         222
       ],
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -248,322 +248,6 @@
         "None",
         "dw-ll_ucoco_384_bs5.torchscript.pt",
         "disable"
-      ]
-    },
-    {
-      "id": 32,
-      "type": "ControlNetApplyAdvanced",
-      "pos": [
-        1842.8390625000002,
-        130
-      ],
-      "size": [
-        270,
-        186
-      ],
-      "flags": {},
-      "order": 21,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 60
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "link": 61
-        },
-        {
-          "name": "control_net",
-          "type": "CONTROL_NET",
-          "link": 62
-        },
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 63
-        },
-        {
-          "name": "vae",
-          "shape": 7,
-          "type": "VAE",
-          "link": 64
-        }
-      ],
-      "outputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "links": [
-            66
-          ]
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "links": [
-            67
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.12.3",
-        "Node name for S&R": "ControlNetApplyAdvanced"
-      },
-      "widgets_values": [
-        0.31,
-        0,
-        1
-      ]
-    },
-    {
-      "id": 48,
-      "type": "PiDiNetPreprocessor",
-      "pos": [
-        1443.2472656250002,
-        482
-      ],
-      "size": [
-        270,
-        82
-      ],
-      "flags": {},
-      "order": 17,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 65
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            69
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_controlnet_aux",
-        "ver": "136f125c89aed92ced1b6fbb491e13719b72fcc0",
-        "Node name for S&R": "PiDiNetPreprocessor"
-      },
-      "widgets_values": [
-        "enable",
-        512
-      ]
-    },
-    {
-      "id": 51,
-      "type": "ControlNetApplyAdvanced",
-      "pos": [
-        2212.8390625,
-        130
-      ],
-      "size": [
-        270,
-        186
-      ],
-      "flags": {},
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 66
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "link": 67
-        },
-        {
-          "name": "control_net",
-          "type": "CONTROL_NET",
-          "link": 68
-        },
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 69
-        },
-        {
-          "name": "vae",
-          "shape": 7,
-          "type": "VAE",
-          "link": 70
-        }
-      ],
-      "outputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "links": [
-            46
-          ]
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "links": [
-            47
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.12.3",
-        "Node name for S&R": "ControlNetApplyAdvanced"
-      },
-      "widgets_values": [
-        0.3,
-        0,
-        1
-      ]
-    },
-    {
-      "id": 61,
-      "type": "IPAdapterFaceID",
-      "pos": [
-        1443.2472656250002,
-        962
-      ],
-      "size": [
-        270,
-        322
-      ],
-      "flags": {},
-      "order": 19,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 71
-        },
-        {
-          "name": "ipadapter",
-          "type": "IPADAPTER",
-          "link": 72
-        },
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 73
-        },
-        {
-          "name": "image_negative",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "attn_mask",
-          "shape": 7,
-          "type": "MASK",
-          "link": 74
-        },
-        {
-          "name": "clip_vision",
-          "shape": 7,
-          "type": "CLIP_VISION",
-          "link": 75
-        },
-        {
-          "name": "insightface",
-          "shape": 7,
-          "type": "INSIGHTFACE",
-          "link": 76
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            45
-          ]
-        },
-        {
-          "name": "face_image",
-          "type": "IMAGE",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_ipadapter_plus",
-        "ver": "a0f451a5113cf9becb0847b92884cb10cbdec0ef",
-        "Node name for S&R": "IPAdapterFaceID"
-      },
-      "widgets_values": [
-        0.9,
-        1,
-        "ease in-out",
-        "concat",
-        0,
-        1,
-        "K+mean(V) w/ C penalty"
-      ]
-    },
-    {
-      "id": 63,
-      "type": "IPAdapterUnifiedLoaderFaceID",
-      "pos": [
-        528.24765625,
-        130
-      ],
-      "size": [
-        315.4302734375,
-        126
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 77
-        },
-        {
-          "name": "ipadapter",
-          "shape": 7,
-          "type": "IPADAPTER",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            71
-          ]
-        },
-        {
-          "name": "ipadapter",
-          "type": "IPADAPTER",
-          "links": [
-            72
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui_ipadapter_plus",
-        "ver": "a0f451a5113cf9becb0847b92884cb10cbdec0ef",
-        "Node name for S&R": "IPAdapterUnifiedLoaderFaceID"
-      },
-      "widgets_values": [
-        "FACEID PLUS V2",
-        0.44,
-        "CUDA"
       ]
     },
     {
@@ -603,51 +287,6 @@
       "widgets_values": [
         "child_a7b081dbdb2c4290a273b1501fd2f605.png",
         "image"
-      ]
-    },
-    {
-      "id": 117,
-      "type": "Image Crop Face",
-      "pos": [
-        528.24765625,
-        1046
-      ],
-      "size": [
-        280.689453125,
-        102
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 78
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            73
-          ]
-        },
-        {
-          "name": "CROP_DATA",
-          "type": "CROP_DATA",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "was-node-suite-comfyui",
-        "ver": "ea935d1044ae5a26efa54ebeb18fe9020af49a45",
-        "Node name for S&R": "Image Crop Face"
-      },
-      "widgets_values": [
-        0.1,
-        "haarcascade_frontalface_alt2.xml"
       ]
     },
     {
@@ -700,7 +339,7 @@
         150
       ],
       "flags": {},
-      "order": 25,
+      "order": 26,
       "mode": 0,
       "inputs": [
         {
@@ -892,7 +531,7 @@
         170
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -957,7 +596,7 @@
         82
       ],
       "flags": {},
-      "order": 20,
+      "order": 21,
       "mode": 0,
       "inputs": [
         {
@@ -983,45 +622,6 @@
       "widgets_values": [
         41,
         30
-      ]
-    },
-    {
-      "id": 6,
-      "type": "CLIPTextEncode",
-      "pos": [
-        528.24765625,
-        386
-      ],
-      "size": [
-        400,
-        200
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 49
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            53
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.12.3",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "5 year old girl, long dark brown tightly curly voluminous hair falling past shoulders,dark-black brown expressive eyes, warm olive skin, round soft face, full chubby cheeks, small button nose, thin natural eyebrows, small pink lips"
       ]
     },
     {
@@ -1061,66 +661,6 @@
       },
       "widgets_values": [
         "deformed, ugly, blurry, bad anatomy, extra fingers, extra limbs, disfigured face, distorted face, bad eyes, crossed eyes, bad teeth, extra teeth, old looking, adult features, realistic photo, scary, dark, horror"
-      ]
-    },
-    {
-      "id": 3,
-      "type": "KSampler",
-      "pos": [
-        2582.8390625,
-        130
-      ],
-      "size": [
-        270,
-        262
-      ],
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 45
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 46
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "link": 47
-        },
-        {
-          "name": "latent_image",
-          "type": "LATENT",
-          "link": 48
-        }
-      ],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            50
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.12.3",
-        "Node name for S&R": "KSampler"
-      },
-      "widgets_values": [
-        901809450568398,
-        "randomize",
-        30,
-        4,
-        "dpmpp_2m_sde_gpu",
-        "exponential",
-        0.7
       ]
     },
     {
@@ -1254,7 +794,7 @@
         86
       ],
       "flags": {},
-      "order": 26,
+      "order": 27,
       "mode": 0,
       "inputs": [
         {
@@ -1362,7 +902,7 @@
         126
       ],
       "flags": {},
-      "order": 27,
+      "order": 28,
       "mode": 0,
       "inputs": [
         {
@@ -1394,6 +934,496 @@
         "skimage",
         1,
         "gpu"
+      ]
+    },
+    {
+      "id": 184,
+      "type": "PreviewImage",
+      "pos": [
+        970.4164045701268,
+        938.7843366671074
+      ],
+      "size": [
+        140,
+        246
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 98
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 117,
+      "type": "Image Crop Face",
+      "pos": [
+        528.24765625,
+        1046
+      ],
+      "size": [
+        280.689453125,
+        102
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 78
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            73,
+            98
+          ]
+        },
+        {
+          "name": "CROP_DATA",
+          "type": "CROP_DATA",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "was-node-suite-comfyui",
+        "ver": "ea935d1044ae5a26efa54ebeb18fe9020af49a45",
+        "Node name for S&R": "Image Crop Face"
+      },
+      "widgets_values": [
+        0.1,
+        "haarcascade_frontalface_alt2.xml"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "KSampler",
+      "pos": [
+        2582.8390625,
+        130
+      ],
+      "size": [
+        270,
+        262
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 45
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 46
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 47
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 48
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            50
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        843515276250665,
+        "randomize",
+        30,
+        4,
+        "dpmpp_2m_sde_gpu",
+        "exponential",
+        0.6
+      ]
+    },
+    {
+      "id": 61,
+      "type": "IPAdapterFaceID",
+      "pos": [
+        1443.2472656250002,
+        962
+      ],
+      "size": [
+        270,
+        322
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 71
+        },
+        {
+          "name": "ipadapter",
+          "type": "IPADAPTER",
+          "link": 72
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 73
+        },
+        {
+          "name": "image_negative",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "attn_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 74
+        },
+        {
+          "name": "clip_vision",
+          "shape": 7,
+          "type": "CLIP_VISION",
+          "link": 75
+        },
+        {
+          "name": "insightface",
+          "shape": 7,
+          "type": "INSIGHTFACE",
+          "link": 76
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            45
+          ]
+        },
+        {
+          "name": "face_image",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_ipadapter_plus",
+        "ver": "a0f451a5113cf9becb0847b92884cb10cbdec0ef",
+        "Node name for S&R": "IPAdapterFaceID"
+      },
+      "widgets_values": [
+        1.1,
+        1,
+        "ease in-out",
+        "concat",
+        0,
+        1,
+        "K+V"
+      ]
+    },
+    {
+      "id": 63,
+      "type": "IPAdapterUnifiedLoaderFaceID",
+      "pos": [
+        528.24765625,
+        130
+      ],
+      "size": [
+        315.4302734375,
+        126
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 77
+        },
+        {
+          "name": "ipadapter",
+          "shape": 7,
+          "type": "IPADAPTER",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            71
+          ]
+        },
+        {
+          "name": "ipadapter",
+          "type": "IPADAPTER",
+          "links": [
+            72
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_ipadapter_plus",
+        "ver": "a0f451a5113cf9becb0847b92884cb10cbdec0ef",
+        "Node name for S&R": "IPAdapterUnifiedLoaderFaceID"
+      },
+      "widgets_values": [
+        "FACEID PLUS V2",
+        0.75,
+        "CUDA"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": [
+        528.24765625,
+        386
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 49
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            53
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "5 year old girl, long dark brown tightly curly voluminous hair, black-brown expressive eyes, warm olive skin, joyful bright smile, sparkling happy eyes, excited expression, rosy cheeks"
+      ]
+    },
+    {
+      "id": 48,
+      "type": "PiDiNetPreprocessor",
+      "pos": [
+        1477.6180269424087,
+        484.4416955591266
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 65
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            69
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui_controlnet_aux",
+        "ver": "136f125c89aed92ced1b6fbb491e13719b72fcc0",
+        "Node name for S&R": "PiDiNetPreprocessor"
+      },
+      "widgets_values": [
+        "enable",
+        512
+      ]
+    },
+    {
+      "id": 51,
+      "type": "ControlNetApplyAdvanced",
+      "pos": [
+        2148.1653007647506,
+        158.79122720995727
+      ],
+      "size": [
+        270,
+        186
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 66
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 67
+        },
+        {
+          "name": "control_net",
+          "type": "CONTROL_NET",
+          "link": 68
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 69
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 70
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            46
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            47
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "Node name for S&R": "ControlNetApplyAdvanced"
+      },
+      "widgets_values": [
+        0.3,
+        0,
+        1
+      ]
+    },
+    {
+      "id": 32,
+      "type": "ControlNetApplyAdvanced",
+      "pos": [
+        1826.1494525094322,
+        141.63354358573775
+      ],
+      "size": [
+        270,
+        186
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 60
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 61
+        },
+        {
+          "name": "control_net",
+          "type": "CONTROL_NET",
+          "link": 62
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 63
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 64
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            66
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            67
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.12.3",
+        "Node name for S&R": "ControlNetApplyAdvanced"
+      },
+      "widgets_values": [
+        0.31,
+        0,
+        1
       ]
     }
   ],
@@ -1773,16 +1803,24 @@
       9,
       0,
       "IMAGE"
+    ],
+    [
+      98,
+      117,
+      0,
+      184,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.3888985032262907,
+      "scale": 0.32181065427842126,
       "offset": [
-        65.45746507358733,
-        688.1140795298571
+        1371.741011652302,
+        356.3494115498099
       ]
     },
     "workflowRendererVersion": "LG",

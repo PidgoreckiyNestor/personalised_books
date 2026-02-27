@@ -82,38 +82,6 @@
   },
   "pages": [
     {
-      "page_num": -1,
-      "base_uri": "templates/wonderland-book/covers/front/base.jpg",
-      "needs_face_swap": true,
-      "availability": {
-        "prepay": true,
-        "postpay": true
-      },
-      "description": "Front cover",
-      "text_layers": [
-        {
-          "text_template": "{child_name} у Дивокраї",
-          "font_uri": "templates/wonderland-book/fonts/RubikBubbles-Regular.ttf",
-          "style": {
-            "box_w": 800,
-            "box_h": 268,
-            "top": 80,
-            "line_height": 110,
-            "margin_left": 140,
-            "text_align": "center",
-            "font_size": 100,
-            "font_weight": 400,
-            "color": "#ffffff",
-            "stroke_width": 0,
-            "shadow_color": "0,0,0",
-            "shadow_opacity": 0.25,
-            "shadow_offset": 4,
-            "shadow_blur": [0, 4]
-          }
-        }
-      ]
-    },
-    {
       "page_num": 0,
       "base_uri": "templates/wonderland-book/pages/page_00_base.png",
       "needs_face_swap": false,

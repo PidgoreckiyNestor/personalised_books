@@ -287,7 +287,7 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
                 if not spec:
                     raise RuntimeError(f"Manifest has no page spec for page_num={page_num}")
 
-                if spec.needs_face_swap:
+                if spec.needs_face_swap and not settings.SKIP_FACE_SWAP:
                     if child_pil is None:
                         raise RuntimeError("child_photo_uri is missing; cannot run face swap")
                     prompt = (spec.prompt or job.common_prompt or "child portrait").strip()
