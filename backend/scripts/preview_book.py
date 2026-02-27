@@ -20,7 +20,8 @@ from PIL import Image
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.book.manifest import BookManifest, TextLayer
+from app.book.manifest import BookManifest, TextLayer, TypographySpec
+from app.rendering.layout import resolve_text_box
 
 
 # Simplified render function (no S3, local files only)
@@ -29,6 +30,9 @@ async def render_text_layers_local(
     layers: List[TextLayer],
     template_vars: Dict[str, Any],
     output_px: int,
+    typography: TypographySpec,
+    dpi: int,
+    safe_zone_pt: float,
     fonts_dir: Optional[Path] = None,
 ) -> Image.Image:
     """Render text layers using Playwright (local version without S3)."""
@@ -45,6 +49,20 @@ async def render_text_layers_local(
     import base64
     import html
     import io
+    import re
+
+    pt_to_px = dpi / 72
+
+    def pt_val(val, default=0):
+        if isinstance(val, str) and val.endswith("pt"):
+            return round(float(val[:-2]) * pt_to_px)
+        return int(val) if val else default
+
+    body_font_size = pt_val(typography.body.get("font_size", "14pt"))
+    body_line_height = pt_val(typography.body.get("line_height", "19pt"))
+    body_color = typography.body.get("color", "#ffffff")
+    accent_font_size = pt_val(typography.accent.get("font_size", "19pt"))
+    accent_color = typography.accent.get("color") or body_color
 
     def pil_to_data_uri(img: Image.Image) -> str:
         if img.size != (output_px, output_px):
@@ -62,85 +80,40 @@ async def render_text_layers_local(
         mime = "font/ttf" if font_path.suffix.lower() == ".ttf" else "font/otf"
         return f"data:{mime};base64,{b64}"
 
-    def build_html(bg_uri: str, font_uri: str, text: str, style: Dict[str, Any]) -> str:
-        target = style.get("target_size", output_px)
-        font_size = style.get("font_size", 32)
-        color = style.get("color", "#ffffff")
-        text_align = style.get("text_align", "center")
-        top = style.get("top", 100)
-        margin_left = style.get("margin_left", 0)
-        box_w = style.get("box_w", 800)
-        box_h = style.get("box_h", 400)
-        stroke_width = style.get("stroke_width", 0)
-        stroke_color = style.get("stroke_color", "#000000")
-        font_family = style.get("font_family", "'Comic Sans MS', sans-serif")
+    def markdown_to_html(text: str) -> str:
+        parts = re.split(r'\*\*(.+?)\*\*', text, flags=re.DOTALL)
+        out = []
+        for i, part in enumerate(parts):
+            if i % 2 == 0:
+                out.append(html.escape(part))
+            else:
+                out.append(f'<span class="accent">{html.escape(part)}</span>')
+        return "".join(out)
 
-        safe_text = html.escape(text).replace("\n", "<br>")
-
+    def build_html(bg_uri: str, font_uri: str, text_html: str, box: dict, text_align: str, color: str) -> str:
         font_face = ""
+        font_family = "'Comic Sans MS', sans-serif"
         if font_uri:
-            font_face = f"""
-            @font-face {{
-                font-family: 'CustomFont';
-                src: url('{font_uri}');
-            }}
-            """
+            font_face = f"@font-face {{ font-family: 'CustomFont'; src: url('{font_uri}'); }}"
             font_family = f"'CustomFont', {font_family}"
 
-        return f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                {font_face}
-                html, body {{
-                    margin: 0;
-                    padding: 0;
-                    width: {target}px;
-                    height: {target}px;
-                    overflow: hidden;
-                }}
-                body {{
-                    background: url('{bg_uri}') center center / cover no-repeat;
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                }}
-                .text {{
-                    position: relative;
-                    margin-top: {top}px;
-                    margin-left: {margin_left}px;
-                    width: {box_w}px;
-                    height: {box_h}px;
-                }}
-                .fill {{
-                    color: {color};
-                    font-family: {font_family};
-                    font-size: {font_size}px;
-                    font-weight: 600;
-                    line-height: 1.3;
-                    text-align: {text_align};
-                    white-space: pre-line;
-                    -webkit-text-stroke: {stroke_width}px {stroke_color};
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="text">
-                <div class="fill">{safe_text}</div>
-            </div>
-        </body>
-        </html>
-        """
+        shadow = f"{typography.shadow.offset}px {typography.shadow.offset}px 4px rgba({typography.shadow.color},{typography.shadow.opacity})"
+
+        return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+{font_face}
+html, body {{ margin:0; padding:0; width:{output_px}px; height:{output_px}px; overflow:hidden; }}
+body {{ background: url('{bg_uri}') center/cover no-repeat; display:flex; align-items:flex-start; }}
+.text {{ position:relative; margin-top:{box['top']}px; margin-left:{box['margin_left']}px; width:{box['box_w']}px; height:{box['box_h']}px; }}
+.fill {{ color:{color}; font-family:{font_family}; font-size:{body_font_size}px; font-weight:400;
+  line-height:{body_line_height}px; text-align:{text_align}; white-space:pre-line; text-shadow:{shadow}; }}
+.accent {{ font-size:{accent_font_size}px; font-weight:700; color:{accent_color}; display:inline; }}
+</style></head><body><div class="text"><div class="fill">{text_html}</div></div></body></html>"""
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(args=["--no-sandbox"])
 
         cur = bg_img
         for layer in layers:
-            # Render template
             template = layer.text_template or layer.text_key or ""
             try:
                 text = template.format_map(template_vars)
@@ -148,25 +121,35 @@ async def render_text_layers_local(
                 print(f"  Warning: template error: {e}")
                 text = template
 
-            style = dict(layer.style or {})
-            style["target_size"] = output_px
+            text_html = markdown_to_html(text)
 
+            box = resolve_text_box(
+                position=layer.position,
+                box_width=layer.box_width,
+                offset_x_pt=layer.offset_x,
+                offset_y_pt=layer.offset_y,
+                page_size_px=output_px,
+                safe_zone_pt=safe_zone_pt,
+                dpi=dpi,
+            )
+
+            color = layer.style.get("color", body_color) if layer.style else body_color
             bg_uri = pil_to_data_uri(cur)
 
-            # Try to load font
-            font_uri = ""
-            if layer.font_uri and fonts_dir:
-                font_name = Path(layer.font_uri).name
+            font_uri_str = ""
+            font_key = layer.font_uri or typography.font_uri
+            if font_key and fonts_dir:
+                font_name = Path(font_key).name
                 font_path = fonts_dir / font_name
                 if font_path.exists():
-                    font_uri = font_to_data_uri(font_path)
+                    font_uri_str = font_to_data_uri(font_path)
 
-            html_doc = build_html(bg_uri, font_uri, text, style)
+            html_doc = build_html(bg_uri, font_uri_str, text_html, box, layer.text_align, color)
 
             page = await browser.new_page(viewport={"width": output_px, "height": output_px})
             try:
                 await page.set_content(html_doc, wait_until="load")
-                await asyncio.sleep(0.3)  # Let fonts load
+                await asyncio.sleep(0.3)
                 png_bytes = await page.screenshot(type="png")
             finally:
                 await page.close()
@@ -251,7 +234,10 @@ async def preview_page(
             spec.text_layers,
             template_vars,
             output_px,
-            fonts_dir if fonts_dir.exists() else None,
+            typography=manifest.typography,
+            dpi=manifest.output.dpi,
+            safe_zone_pt=manifest.output.safe_zone_pt,
+            fonts_dir=fonts_dir if fonts_dir.exists() else None,
         )
 
     # Save if output_dir provided

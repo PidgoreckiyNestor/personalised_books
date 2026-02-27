@@ -487,6 +487,9 @@ def render_stage_pages_task(self, job_id: str, stage: str, page_nums_filter: lis
                             "child_gender": job.child_gender,
                         },
                         output_px=manifest.output.page_size_px,
+                        typography=manifest.typography,
+                        dpi=manifest.output.dpi,
+                        safe_zone_pt=manifest.output.safe_zone_pt,
                     )
                 else:
                     final_img = bg_img
@@ -521,6 +524,7 @@ def render_stage_pages_task(self, job_id: str, stage: str, page_nums_filter: lis
                     await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=pn)
 
                 if cover_spec.text_layers:
+                    cover_typo = (manifest.covers and manifest.covers.typography) or manifest.typography
                     final_img = await render_text_layers_over_image(
                         bg_img,
                         cover_spec.text_layers,
@@ -530,6 +534,9 @@ def render_stage_pages_task(self, job_id: str, stage: str, page_nums_filter: lis
                             "child_gender": job.child_gender,
                         },
                         output_px=manifest.output.page_size_px,
+                        typography=cover_typo,
+                        dpi=manifest.output.dpi,
+                        safe_zone_pt=manifest.output.safe_zone_pt,
                     )
                 else:
                     final_img = bg_img
