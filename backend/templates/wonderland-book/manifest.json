@@ -87,7 +87,7 @@
       "typography": {
         "font_uri": "templates/wonderland-book/fonts/Rubik-Regular.ttf",
         "body": {
-          "font_size": "16pt",
+          "font_size": "18pt",
           "line_height": "24pt",
           "color": "#cc777a",
           "font_weight": 900,
