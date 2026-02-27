@@ -154,7 +154,7 @@
       "text_layers": [
         {
           "text_template": "Вона ступила на **цукеркову стежку**, де льодяники гойдались, мов квіти казкові. Солодкий вітерець ніжно торкався щік, а карамельні дерева шепотіли: **\"Вітаємо!\"**",
-          "position": "bottom-right",
+          "position": "middle-right",
           "box_width": 0.74,
           "text_align": "right"
         }
@@ -407,20 +407,21 @@
       "text_layers": [
         {
           "text_template": "У замку лунала **чарівна музика**, танцюристи кружляли у святкових сукнях.",
-          "position": "top-left",
+          "position": "middle-center",
           "box_width": 0.8,
-          "text_align": "left"
+          "text_align": "center"
         }
       ]
     },
     {
       "page_num": 23,
-      "base_uri": "templates/wonderland-book/pages/page_23_base.png",
+      "base_uri": "templates/wonderland-book/pages/page_23_base.png", 
       "needs_face_swap": true,
       "availability": { "prepay": true, "postpay": true },
       "description": "Дівчинка на балу",
       "text_layers": [
         {
+          
           "text_template": "{child_name} ступила до зали із широкими очима — **справжнісінький бал!**",
           "position": "top-right",
           "box_width": 0.80,
