@@ -59,4 +59,12 @@ def resolve_text_box(
     x += round(offset_x_pt * pt_to_px)
     y += round(offset_y_pt * pt_to_px)
 
-    return {"top": y, "margin_left": x, "box_w": box_w, "box_h": box_h}
+    # Vertical alignment hint for CSS rendering
+    if v == "bottom":
+        v_align = "flex-end"
+    elif v == "middle":
+        v_align = "center"
+    else:
+        v_align = "flex-start"
+
+    return {"top": y, "margin_left": x, "box_w": box_w, "box_h": box_h, "v_align": v_align}

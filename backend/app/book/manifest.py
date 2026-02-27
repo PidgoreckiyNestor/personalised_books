@@ -14,6 +14,8 @@ class ShadowSpec(BaseModel):
     color: str = "0,0,0"
     opacity: float = 0.5
     offset: int = 4
+    offset_x: Optional[int] = None  # if set, overrides offset for horizontal
+    offset_y: Optional[int] = None  # if set, overrides offset for vertical
     blur: List[int] = Field(default_factory=lambda: [0, 4])
 
 
@@ -74,6 +76,7 @@ class CoverSpec(BaseModel):
     availability: Availability = Field(default_factory=Availability)
     prompt: Optional[str] = None
     negative_prompt: Optional[str] = None
+    typography: Optional[TypographySpec] = None  # per-cover override
 
 
 class CoversSpec(BaseModel):

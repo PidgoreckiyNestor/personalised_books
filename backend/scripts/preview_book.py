@@ -103,7 +103,7 @@ async def render_text_layers_local(
 {font_face}
 html, body {{ margin:0; padding:0; width:{output_px}px; height:{output_px}px; overflow:hidden; }}
 body {{ background: url('{bg_uri}') center/cover no-repeat; display:flex; align-items:flex-start; }}
-.text {{ position:relative; margin-top:{box['top']}px; margin-left:{box['margin_left']}px; width:{box['box_w']}px; height:{box['box_h']}px; }}
+.text {{ position:relative; margin-top:{box['top']}px; margin-left:{box['margin_left']}px; width:{box['box_w']}px; height:{box['box_h']}px; display:flex; flex-direction:column; justify-content:{box.get('v_align', 'flex-start')}; }}
 .fill {{ color:{color}; font-family:{font_family}; font-size:{body_font_size}px; font-weight:400;
   line-height:{body_line_height}px; text-align:{text_align}; white-space:pre-line; text-shadow:{shadow}; }}
 .accent {{ font-size:{accent_font_size}px; font-weight:700; color:{accent_color}; display:inline; }}

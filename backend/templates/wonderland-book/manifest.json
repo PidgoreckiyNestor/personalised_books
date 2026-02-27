@@ -4,66 +4,70 @@
   "language": "uk",
   "output": {
     "dpi": 300,
-    "page_size_px": 1080,
-    "safe_zone_pt": 24.0
+    "page_size_px": 2551,
+    "safe_zone_pt": 57.0
   },
   "typography": {
     "font_uri": "templates/wonderland-book/fonts/Rubik-Regular.ttf",
     "font_bold_uri": "templates/wonderland-book/fonts/Rubik-Bold.ttf",
     "body": {
-      "font_size": "9.6pt",
-      "line_height": "13.2pt",
-      "color": "#ffffff"
+      "font_size": "18pt",
+      "line_height": "27pt",
+      "color": "#ffffff",
+      "stroke_width": 1,
+      "stroke_color": "#ffffff"
     },
     "accent": {
-      "font_size": "13.4pt"
+      "font_size": "23pt"
     },
     "shadow": {
       "color": "0,0,0",
-      "opacity": 0.5,
-      "offset": 4,
-      "blur": [0, 4]
+      "opacity": 0.6,
+      "offset": 5,
+      "blur": [0, 4, 10, 20]
     }
   },
   "covers": {
-    "typography": {
-      "font_uri": "templates/wonderland-book/fonts/RubikBubbles-Regular.ttf",
-      "body": {
-        "font_size": "7pt",
-        "line_height": "13.2pt",
-        "color": "#cc777a"
-      },
-      "accent": {
-        "font_size": "24pt",
-        "color": "#ffffff"
-      },
-      "shadow": {
-        "color": "0,0,0",
-        "opacity": 0.25,
-        "offset": 4,
-        "blur": [0, 4]
-      }
-    },
     "front": {
       "base_uri": "templates/wonderland-book/covers/front/base.jpg",
       "needs_face_swap": true,
       "crop_preview": {
         "x": 0,
         "y": 0,
-        "w": 1080,
-        "h": 1080
+        "w": 2551,
+        "h": 2551
       },
       "availability": {
         "prepay": true,
         "postpay": true
       },
+      "typography": {
+        "font_uri": "templates/wonderland-book/fonts/RubikBubbles-Regular.ttf",
+        "body": {
+          "font_size": "57pt",
+          "line_height": "62pt",
+          "color": "#ffffff",
+          "font_weight": 400,
+          "stroke_width": 1,
+          "stroke_color": "#000000"
+        },
+        "accent": {
+          "font_size": "57pt",
+          "color": "#ffffff"
+        },
+        "shadow": {
+          "color": "0,0,0",
+          "opacity": 0.3,
+          "offset": 4,
+          "blur": [4]
+        }
+      },
       "text_layers": [
         {
-          "text_template": "**{child_name} у Дивокраї**",
+          "text_template": "{child_name} у Дивокраї",
           "position": "top-center",
           "box_width": 0.91,
-          "text_align": "center",
-          "offset_y": -5.0
+          "text_align": "center"
         }
       ]
     },
@@ -73,21 +77,39 @@
       "crop_preview": {
         "x": 0,
         "y": 0,
-        "w": 1080,
-        "h": 1080
+        "w": 2551,
+        "h": 2551
       },
       "availability": {
         "prepay": true,
         "postpay": true
+      },
+      "typography": {
+        "font_uri": "templates/wonderland-book/fonts/Rubik-Regular.ttf",
+        "body": {
+          "font_size": "16pt",
+          "line_height": "24pt",
+          "color": "#cc777a",
+          "font_weight": 500,
+          "stroke_width": 0,
+          "letter_spacing": 0.3
+        },
+        "accent": {
+          "font_size": "16pt"
+        },
+        "shadow": {
+          "color": "0,0,0",
+          "opacity": 0,
+          "offset": 0,
+          "blur": [0]
+        }
       },
       "text_layers": [
         {
           "text_template": "Крок у чарівну браму — і ти в Дивокраї! Шоколадні водоспади, морозивні вежі, карамельні гірки та бал у казковому замку.\nПерсоналізована пригода для маленьких мрійників.",
           "position": "middle-center",
           "box_width": 0.49,
-          "text_align": "center",
-          "offset_x": 10.0,
-          "style": { "shadow_opacity": 0 }
+          "text_align": "center"
         }
       ]
     }
@@ -102,10 +124,9 @@
       "text_layers": [
         {
           "text_template": "**{child_name}** знайшла чарівну браму золоту, що сяяла й мерехтіла у казкову мить.\n**Дивокрай!** — вона прошепотіла.\nЯк я давно мріяла сюди потрапити!",
-          "position": "bottom-center",
+          "position": "bottom-left",
           "box_width": 0.93,
-          "text_align": "left",
-          "offset_y": 21.6
+          "text_align": "left"
         }
       ]
     },
@@ -134,9 +155,7 @@
           "text_template": "Вона ступила на **цукеркову стежку**, де льодяники гойдались, мов квіти казкові. Солодкий вітерець ніжно торкався щік, а карамельні дерева шепотіли: **\"Вітаємо!\"**",
           "position": "bottom-right",
           "box_width": 0.74,
-          "text_align": "right",
-          "offset_x": -8.0,
-          "offset_y": -5.5
+          "text_align": "right"
         }
       ]
     },
@@ -151,8 +170,7 @@
           "text_template": "**Шоколадний фонтан** дзюрчав серед квітів, найсолодший у цілому світі.",
           "position": "top-left",
           "box_width": 0.91,
-          "text_align": "left",
-          "offset_y": 5.5
+          "text_align": "left"
         }
       ]
     },
@@ -165,10 +183,9 @@
       "text_layers": [
         {
           "text_template": "**{child_name}** зачерпнула гарячого какао, і посміхнулась: **\"Смакує, як обійми!\"**",
-          "position": "top-center",
+          "position": "top-right",
           "box_width": 0.89,
-          "text_align": "right",
-          "offset_x": 2.0
+          "text_align": "right"
         }
       ]
     },
@@ -182,10 +199,8 @@
         {
           "text_template": "А там, за обрієм, здіймалась **Торт-гора** — найсолодша вершина у Дивокраї!",
           "position": "bottom-left",
-          "box_width": 0.69,
-          "text_align": "left",
-          "offset_x": 3.0,
-          "offset_y": 53.0
+          "box_width": 0.8,
+          "text_align": "left"
         }
       ]
     },
@@ -200,8 +215,7 @@
           "text_template": "**Вежі з морозива** сягали неба, вкриті глазур'ю рожевою й блакитною.",
           "position": "bottom-center",
           "box_width": 0.97,
-          "text_align": "center",
-          "offset_y": 68.0
+          "text_align": "center"
         }
       ]
     },
@@ -216,9 +230,7 @@
           "text_template": "Вона **застрибала по хмаринках** пухнастих, м'яких, як цукрова вата. І раптом побачила ціле місто у небі — **з кексів, тістечок і мрій!**",
           "position": "bottom-center",
           "box_width": 1.0,
-          "text_align": "left",
-          "offset_x": 3.0,
-          "offset_y": 45.0
+          "text_align": "left"
         }
       ]
     },
@@ -239,7 +251,7 @@
         {
           "text_template": "Хмаринка м'яко опустилась донизу, де чекав **чарівний ярмарок.**",
           "position": "top-center",
-          "box_width": 1.0,
+          "box_width": 0.9,
           "text_align": "left"
         }
       ]
@@ -255,8 +267,7 @@
           "text_template": "Вогники мерехтіли на каруселях, а музика кликала: **\"Ходімо гратись!\"**",
           "position": "bottom-center",
           "box_width": 0.95,
-          "text_align": "right",
-          "offset_y": 69.0
+          "text_align": "right"
         }
       ]
     },
@@ -271,8 +282,7 @@
           "text_template": "{child_name} сміялась голосно і щасливо: **\"Це найкраща гірка у світі!\"**",
           "position": "middle-left",
           "box_width": 0.91,
-          "text_align": "center",
-          "offset_y": 27.0
+          "text_align": "center"
         }
       ]
     },
@@ -287,9 +297,7 @@
           "text_template": "**Вжух!** — полетіла вона з гірки карамельної, червоно-білі смужки мелькали навколо.",
           "position": "bottom-right",
           "box_width": 0.86,
-          "text_align": "right",
-          "offset_x": -6.0,
-          "offset_y": 57.0
+          "text_align": "right"
         }
       ]
     },
@@ -319,9 +327,7 @@
           "text_template": "Він пливе крізь хмари, м'які як сни, і кличе у **нову пригоду**.",
           "position": "bottom-right",
           "box_width": 0.81,
-          "text_align": "right",
-          "offset_x": -6.0,
-          "offset_y": 68.0
+          "text_align": "right"
         }
       ]
     },
@@ -336,8 +342,7 @@
           "text_template": "**{child_name}** дивилась крізь золоте віконце, як повз пропливали **повітряні кораблі.** Увесь світ внизу сяяв і мерехтів, наче **розсипані зірки.**",
           "position": "top-center",
           "box_width": 0.80,
-          "text_align": "left",
-          "offset_y": 9.0
+          "text_align": "center"
         }
       ]
     },
@@ -359,8 +364,7 @@
           "text_template": "Поїзд зупинився у **Кексовому селі**, де кожен будиночок — маленьке тістечко. Рожеві дахи з глазурі, брукована вулиця, і запах свіжої випічки скрізь.",
           "position": "bottom-center",
           "box_width": 0.94,
-          "text_align": "left",
-          "offset_y": 43.0
+          "text_align": "left"
         }
       ]
     },
@@ -389,8 +393,7 @@
           "text_template": "Крізь **рожеві дерева сакури** виблискував замок на сонці. Вежі, як у справжньої принцеси, і сади, де **мрії розцвітають**.",
           "position": "bottom-center",
           "box_width": 0.97,
-          "text_align": "right",
-          "offset_y": 41.0
+          "text_align": "right"
         }
       ]
     },
@@ -405,9 +408,7 @@
           "text_template": "У замку лунала **чарівна музика**, танцюристи кружляли у святкових сукнях.",
           "position": "top-center",
           "box_width": 0.97,
-          "text_align": "left",
-          "offset_x": 3.0,
-          "offset_y": -3.0
+          "text_align": "left"
         }
       ]
     },
@@ -420,11 +421,9 @@
       "text_layers": [
         {
           "text_template": "{child_name} ступила до зали із широкими очима — **справжнісінький бал!**",
-          "position": "top-left",
+          "position": "top-right",
           "box_width": 0.80,
-          "text_align": "left",
-          "offset_x": 3.0,
-          "offset_y": -2.5
+          "text_align": "right"
         }
       ]
     },
@@ -439,9 +438,7 @@
           "text_template": "Вона попливла **квітковою річкою**, де пелюстки танцювали на воді. Гори дивились здалеку лагідно, а сонце шепотіло: **\"Відпочинь...\"**",
           "position": "top-center",
           "box_width": 0.99,
-          "text_align": "left",
-          "offset_x": 5.5,
-          "offset_y": 2.5
+          "text_align": "left"
         }
       ]
     },
@@ -456,9 +453,7 @@
           "text_template": "Після балу **{child_name}** вийшла у чарівний сад, де її чекав маленький **човник**. І Дивокрай ніжно шепотів:\n**\"До зустрічі...\"**",
           "position": "middle-right",
           "box_width": 0.79,
-          "text_align": "right",
-          "offset_x": -6.0,
-          "offset_y": 4.0
+          "text_align": "right"
         }
       ]
     },
@@ -480,9 +475,7 @@
           "text_template": "Під **деревом солодощів** вона присіла, де з гілок звисали льодяники й цукерки. **{child_name}** тримала в долоньках маленький скарб — **шматочок Дивокраю** назавжди.",
           "position": "middle-center",
           "box_width": 1.0,
-          "text_align": "right",
-          "offset_x": -15.0,
-          "offset_y": 11.0
+          "text_align": "right"
         }
       ]
     },
@@ -497,8 +490,7 @@
           "text_template": "А тепер заплющ оченята, **маленька мрійнице,** бо пригоди у Дивокраї ніколи не закінчуються.\nПросто уяви — і ти знову там, де магія живе у твоєму серці.",
           "position": "middle-center",
           "box_width": 0.95,
-          "text_align": "center",
-          "offset_y": 17.0
+          "text_align": "center"
         }
       ]
     },
@@ -513,8 +505,7 @@
           "text_template": "Вона лягла **серед квітів і цукерок**, дивлячись у небо солодке й безмежне.\nУ серці — тепло від чарівних пригод, і знання, що **це лише початок**.",
           "position": "top-center",
           "box_width": 1.0,
-          "text_align": "center",
-          "offset_y": -6.5
+          "text_align": "center"
         }
       ]
     }

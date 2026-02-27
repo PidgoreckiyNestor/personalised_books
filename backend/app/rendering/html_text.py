@@ -60,9 +60,12 @@ def _build_defaults_from_typography(
         "shadow_color": typo.shadow.color,
         "shadow_opacity": typo.shadow.opacity,
         "shadow_offset": typo.shadow.offset,
+        "shadow_offset_x": typo.shadow.offset_x,
+        "shadow_offset_y": typo.shadow.offset_y,
         "shadow_blur": list(typo.shadow.blur),
-        "stroke_width": 0,
-        "stroke_color": "#ffffff",
+        "stroke_width": int(body.get("stroke_width", 0)),
+        "stroke_color": str(body.get("stroke_color", "#ffffff")),
+        "letter_spacing": float(body.get("letter_spacing", 0.5)),
     }
 
 
@@ -111,9 +114,13 @@ def _build_text_shadow_layers(
     shadow_blur: List[int],
     shadow_color: str,
     shadow_opacity: float,
+    shadow_offset_x: int | None = None,
+    shadow_offset_y: int | None = None,
 ) -> List[str]:
     color_with_alpha = f"rgba({shadow_color},{shadow_opacity})"
-    return [f"{shadow_offset}px {shadow_offset}px {blur}px {color_with_alpha}" for blur in shadow_blur]
+    ox = shadow_offset_x if shadow_offset_x is not None else shadow_offset
+    oy = shadow_offset_y if shadow_offset_y is not None else shadow_offset
+    return [f"{ox}px {oy}px {blur}px {color_with_alpha}" for blur in shadow_blur]
 
 
 def _build_stroke_shadow_layers(stroke_width: int, stroke_color: str) -> List[str]:
@@ -139,10 +146,15 @@ def _build_text_shadow_css(
     shadow_blur: List[int],
     shadow_color: str,
     shadow_opacity: float,
+    shadow_offset_x: int | None = None,
+    shadow_offset_y: int | None = None,
 ) -> str:
     layers: List[str] = []
     layers.extend(_build_stroke_shadow_layers(stroke_width, stroke_color))
-    layers.extend(_build_text_shadow_layers(shadow_offset, shadow_blur, shadow_color, shadow_opacity))
+    layers.extend(_build_text_shadow_layers(
+        shadow_offset, shadow_blur, shadow_color, shadow_opacity,
+        shadow_offset_x=shadow_offset_x, shadow_offset_y=shadow_offset_y,
+    ))
     return ",\n  ".join(layers) if layers else "none"
 
 
@@ -231,6 +243,8 @@ def _build_html(
         shadow_blur=list(settings_dict["shadow_blur"]),
         shadow_color=str(settings_dict["shadow_color"]),
         shadow_opacity=float(settings_dict["shadow_opacity"]),
+        shadow_offset_x=settings_dict.get("shadow_offset_x"),
+        shadow_offset_y=settings_dict.get("shadow_offset_y"),
     )
 
     font_face = ""
@@ -283,6 +297,9 @@ body {{
   margin-left: {settings_dict['margin_left']}px;
   width: {settings_dict['box_w']}px;
   height: {settings_dict['box_h']}px;
+  display: flex;
+  flex-direction: column;
+  justify-content: {settings_dict['v_align']};
 }}
 
 .fill {{
@@ -293,6 +310,7 @@ body {{
   line-height: {settings_dict['line_height']}px;
   text-align: {settings_dict['text_align']};
   white-space: {settings_dict['white_space']};
+  letter-spacing: {settings_dict['letter_spacing']}px;
 
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
@@ -383,17 +401,23 @@ async def render_text_layers_over_image(
             # Build style: typography defaults → layer overrides → position
             style = dict(defaults)
             if layer.style:
-                # Allow per-layer overrides (color, shadow_opacity, etc.)
                 for k, v in layer.style.items():
                     if k in ("shadow_color", "shadow_opacity", "shadow_offset", "shadow_blur",
-                             "stroke_width", "stroke_color", "color", "font_weight"):
-                        style[k] = v
+                             "shadow_offset_x", "shadow_offset_y",
+                             "stroke_width", "stroke_color", "color", "font_weight",
+                             "font_size", "line_height", "letter_spacing"):
+                        # Convert pt strings to px for font_size/line_height
+                        if k in ("font_size", "line_height") and isinstance(v, str):
+                            style[k] = _pt_val(v, pt_to_px)
+                        else:
+                            style[k] = v
             style["target_size"] = output_px
             style["top"] = box["top"]
             style["margin_left"] = box["margin_left"]
             style["box_w"] = box["box_w"]
             style["box_h"] = box["box_h"]
             style["text_align"] = layer.text_align
+            style["v_align"] = box.get("v_align", "flex-start")
 
             bg_data_uri = _pil_to_png_data_uri(cur, output_px)
 
