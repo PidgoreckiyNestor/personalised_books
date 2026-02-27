@@ -236,6 +236,16 @@ def _build_html(
     stroke_width = int(settings_dict.get("stroke_width", 0) or 0)
     stroke_color = str(settings_dict.get("stroke_color", "#ffffff") or "#ffffff")
 
+    # Compensate half-leading so text visually aligns with safe zone edge
+    half_leading = (settings_dict["line_height"] - settings_dict["font_size"]) / 2
+    v_align = settings_dict.get("v_align", "flex-start")
+    if v_align == "flex-end":
+        leading_compensation = f"margin-bottom: -{half_leading}px;"
+    elif v_align == "flex-start":
+        leading_compensation = f"margin-top: -{half_leading}px;"
+    else:
+        leading_compensation = ""
+
     text_shadow_css = _build_text_shadow_css(
         stroke_width=stroke_width,
         stroke_color=stroke_color,
@@ -311,6 +321,7 @@ body {{
   text-align: {settings_dict['text_align']};
   white-space: {settings_dict['white_space']};
   letter-spacing: {settings_dict['letter_spacing']}px;
+  {leading_compensation}
 
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;

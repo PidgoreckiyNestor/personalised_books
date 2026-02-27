@@ -99,13 +99,23 @@ async def render_text_layers_local(
 
         shadow = f"{typography.shadow.offset}px {typography.shadow.offset}px 4px rgba({typography.shadow.color},{typography.shadow.opacity})"
 
+        # Compensate half-leading for visual alignment with safe zone
+        half_leading = (body_line_height - body_font_size) / 2
+        v_align = box.get('v_align', 'flex-start')
+        if v_align == "flex-end":
+            leading_comp = f"margin-bottom: -{half_leading}px;"
+        elif v_align == "flex-start":
+            leading_comp = f"margin-top: -{half_leading}px;"
+        else:
+            leading_comp = ""
+
         return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 {font_face}
 html, body {{ margin:0; padding:0; width:{output_px}px; height:{output_px}px; overflow:hidden; }}
 body {{ background: url('{bg_uri}') center/cover no-repeat; display:flex; align-items:flex-start; }}
 .text {{ position:relative; margin-top:{box['top']}px; margin-left:{box['margin_left']}px; width:{box['box_w']}px; height:{box['box_h']}px; display:flex; flex-direction:column; justify-content:{box.get('v_align', 'flex-start')}; }}
 .fill {{ color:{color}; font-family:{font_family}; font-size:{body_font_size}px; font-weight:400;
-  line-height:{body_line_height}px; text-align:{text_align}; white-space:pre-line; text-shadow:{shadow}; }}
+  line-height:{body_line_height}px; text-align:{text_align}; white-space:pre-line; text-shadow:{shadow}; {leading_comp} }}
 .accent {{ font-size:{accent_font_size}px; font-weight:700; color:{accent_color}; display:inline; }}
 </style></head><body><div class="text"><div class="fill">{text_html}</div></div></body></html>"""
 

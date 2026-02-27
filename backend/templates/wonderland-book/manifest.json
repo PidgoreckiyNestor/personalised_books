@@ -57,9 +57,9 @@
         },
         "shadow": {
           "color": "0,0,0",
-          "opacity": 0.3,
-          "offset": 4,
-          "blur": [4]
+          "opacity": 0.6,
+          "offset": 5,
+          "blur": [0, 4, 10, 20]
         }
       },
       "text_layers": [
@@ -90,9 +90,10 @@
           "font_size": "16pt",
           "line_height": "24pt",
           "color": "#cc777a",
-          "font_weight": 500,
+          "font_weight": 900,
           "stroke_width": 0,
           "letter_spacing": 0.3
+
         },
         "accent": {
           "font_size": "16pt"
@@ -109,7 +110,8 @@
           "text_template": "Крок у чарівну браму — і ти в Дивокраї! Шоколадні водоспади, морозивні вежі, карамельні гірки та бал у казковому замку.\nПерсоналізована пригода для маленьких мрійників.",
           "position": "middle-center",
           "box_width": 0.49,
-          "text_align": "center"
+          "text_align": "center",
+          "offset_y": -15.0
         }
       ]
     }
@@ -250,7 +252,7 @@
       "text_layers": [
         {
           "text_template": "Хмаринка м'яко опустилась донизу, де чекав **чарівний ярмарок.**",
-          "position": "top-center",
+          "position": "top-left",
           "box_width": 0.9,
           "text_align": "left"
         }
@@ -279,7 +281,7 @@
       "description": "Карамельна гірка - пейзаж",
       "text_layers": [
         {
-          "text_template": "{child_name} сміялась голосно і щасливо: **\"Це найкраща гірка у світі!\"**",
+          "text_template": "{child_name} сміялась голосно і щасливо:\n**\"Це найкраща гірка у світі!\"**",
           "position": "middle-left",
           "box_width": 0.91,
           "text_align": "center"
@@ -342,7 +344,7 @@
           "text_template": "**{child_name}** дивилась крізь золоте віконце, як повз пропливали **повітряні кораблі.** Увесь світ внизу сяяв і мерехтів, наче **розсипані зірки.**",
           "position": "top-center",
           "box_width": 0.80,
-          "text_align": "center"
+          "text_align": "left"
         }
       ]
     },
