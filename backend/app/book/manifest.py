@@ -58,6 +58,20 @@ class PageSpec(BaseModel):
     negative_prompt: Optional[str] = None
 
 
+class CoverSpec(BaseModel):
+    base_uri: str
+    needs_face_swap: bool = False
+    text_layers: List[TextLayer] = Field(default_factory=list)
+    availability: Availability = Field(default_factory=Availability)
+    prompt: Optional[str] = None
+    negative_prompt: Optional[str] = None
+
+
+class CoversSpec(BaseModel):
+    front: Optional[CoverSpec] = None
+    back: Optional[CoverSpec] = None
+
+
 class OutputSpec(BaseModel):
     dpi: int = 300
     page_size_px: int = 2551
@@ -66,6 +80,7 @@ class OutputSpec(BaseModel):
 class BookManifest(BaseModel):
     slug: str
     pages: List[PageSpec]
+    covers: Optional[CoversSpec] = None
     output: OutputSpec = Field(default_factory=OutputSpec)
 
     def page_by_num(self, page_num: int) -> Optional[PageSpec]:

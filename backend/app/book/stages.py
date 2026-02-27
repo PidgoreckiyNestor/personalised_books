@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import List, Literal
+from typing import List, Literal, Tuple
 
-from .manifest import BookManifest
+from .manifest import BookManifest, CoverSpec
 
 Stage = Literal["prepay", "postpay"]
 
-FRONT_HIDDEN_PAGE_NUMS = {1, 23}
+FRONT_HIDDEN_PAGE_NUMS = {}
 
 
 def _exclude_front_hidden_pages(page_nums: List[int]) -> List[int]:
@@ -57,6 +57,21 @@ def page_nums_for_front_preview(manifest: BookManifest, stage: Stage) -> List[in
     Front-facing preview excludes hidden pages (e.g. 1 and 23).
     """
     return _exclude_front_hidden_pages(page_nums_for_stage(manifest, stage))
+
+
+def covers_for_stage(manifest: BookManifest, stage: Stage) -> List[Tuple[str, CoverSpec]]:
+    """Return list of (cover_type, spec) for covers that should be generated in this stage."""
+    result: List[Tuple[str, CoverSpec]] = []
+    if not manifest.covers:
+        return result
+    for cover_type in ("front", "back"):
+        spec = getattr(manifest.covers, cover_type, None)
+        if not spec:
+            continue
+        avail = getattr(spec.availability, stage, False)
+        if avail:
+            result.append((cover_type, spec))
+    return result
 
 
 def stage_has_face_swap(manifest: BookManifest, stage: Stage) -> bool:

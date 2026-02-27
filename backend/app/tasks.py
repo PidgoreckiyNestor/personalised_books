@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from .book.manifest_store import load_manifest
-from .book.stages import page_nums_for_stage, prepay_page_nums
+from .book.stages import covers_for_stage, page_nums_for_stage, prepay_page_nums
 from .config import settings
 from .db import AsyncSessionLocal
 from .logger import logger
@@ -201,6 +201,8 @@ def _s3_write_pil(img: Image.Image, key: str, dpi: Optional[int] = None) -> str:
 def _page_key(page_num: int) -> str:
     if page_num == -1:
         return "front_cover"
+    if page_num == -2:
+        return "back_cover"
     return f"page_{page_num:02d}"
 
 
@@ -324,6 +326,50 @@ def build_stage_backgrounds_task(self, job_id: str, stage: str, randomize_seed: 
                 bg_uri = _s3_write_pil(out_img, bg_key, dpi=manifest.output.dpi)
                 await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=page_num)
                 logger.info(f"Collected face swap result for page {page_num}")
+
+            # Phase 4: Process covers
+            cover_page_nums = {"front": -1, "back": -2}
+            covers_to_process = covers_for_stage(manifest, stage)
+            cover_pending = []  # (cover_type, prompt_id)
+            cover_non_swap = []  # (cover_type, spec)
+            for cover_type, cover_spec in covers_to_process:
+                if cover_spec.needs_face_swap and not settings.SKIP_FACE_SWAP:
+                    if child_pil is None:
+                        raise RuntimeError("child_photo_uri is missing; cannot run face swap for cover")
+                    prompt = (cover_spec.prompt or job.common_prompt or "child portrait").strip()
+                    negative = (cover_spec.negative_prompt or "low quality, bad face, distorted").strip()
+                    prompt_id = _submit_face_transfer(
+                        child_pil,
+                        cover_spec.base_uri,
+                        prompt,
+                        negative,
+                        randomize_seed=randomize_seed_flag,
+                    )
+                    cover_pending.append((cover_type, prompt_id))
+                    logger.info(f"Queued face swap for {cover_type} cover: {prompt_id}")
+                else:
+                    cover_non_swap.append((cover_type, cover_spec))
+
+            for cover_type, cover_spec in cover_non_swap:
+                out_img = _s3_read_private_to_pil(cover_spec.base_uri)
+                target = manifest.output.page_size_px
+                if out_img.size != (target, target):
+                    out_img = out_img.resize((target, target), Image.Resampling.LANCZOS)
+                pn = cover_page_nums[cover_type]
+                bg_key = _layout_bg_key(job_id, pn)
+                bg_uri = _s3_write_pil(out_img, bg_key, dpi=manifest.output.dpi)
+                await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=pn)
+
+            for cover_type, prompt_id in cover_pending:
+                out_img = _collect_face_transfer(prompt_id)
+                target = manifest.output.page_size_px
+                if out_img.size != (target, target):
+                    out_img = out_img.resize((target, target), Image.Resampling.LANCZOS)
+                pn = cover_page_nums[cover_type]
+                bg_key = _layout_bg_key(job_id, pn)
+                bg_uri = _s3_write_pil(out_img, bg_key, dpi=manifest.output.dpi)
+                await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=pn)
+                logger.info(f"Collected face swap result for {cover_type} cover")
 
             if randomize_seed_flag and stage == "prepay":
                 base_data = job.analysis_json if isinstance(job.analysis_json, dict) else {}
@@ -455,6 +501,43 @@ def render_stage_pages_task(self, job_id: str, stage: str, page_nums_filter: lis
                     s3_uri=final_uri,
                     page_num=page_num,
                 )
+
+            # Render covers (text overlay)
+            cover_page_nums = {"front": -1, "back": -2}
+            covers_to_render = covers_for_stage(manifest, stage)
+            for cover_type, cover_spec in covers_to_render:
+                pn = cover_page_nums[cover_type]
+                target = manifest.output.page_size_px
+                bg_key = _layout_bg_key(job_id, pn)
+
+                if cover_spec.needs_face_swap:
+                    bg_uri = f"s3://{settings.S3_BUCKET_NAME}/{bg_key}"
+                    bg_img = _s3_read_private_to_pil(bg_uri)
+                else:
+                    bg_img = _s3_read_private_to_pil(cover_spec.base_uri)
+                    if bg_img.size != (target, target):
+                        bg_img = bg_img.resize((target, target), Image.Resampling.LANCZOS)
+                    bg_uri = _s3_write_pil(bg_img, bg_key, dpi=manifest.output.dpi)
+                    await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_bg_png", s3_uri=bg_uri, page_num=pn)
+
+                if cover_spec.text_layers:
+                    final_img = await render_text_layers_over_image(
+                        bg_img,
+                        cover_spec.text_layers,
+                        template_vars={
+                            "child_name": job.child_name,
+                            "child_age": job.child_age,
+                            "child_gender": job.child_gender,
+                        },
+                        output_px=manifest.output.page_size_px,
+                    )
+                else:
+                    final_img = bg_img
+
+                final_key = _layout_final_key(job_id, pn)
+                final_uri = _s3_write_pil(final_img, final_key, dpi=manifest.output.dpi)
+                await _upsert_artifact(db, job_id=job_id, stage=stage, kind="page_png", s3_uri=final_uri, page_num=pn)
+                logger.info(f"Rendered {cover_type} cover for job {job_id}")
 
             if stage == "prepay":
                 job.status = "prepay_ready"

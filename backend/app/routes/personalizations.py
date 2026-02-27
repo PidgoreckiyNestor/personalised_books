@@ -571,7 +571,7 @@ def _all_manifest_page_nums(manifest) -> List[int]:
     nums: List[int] = []
     for p in getattr(manifest, "pages", []):
         pn = getattr(p, "page_num", None)
-        if isinstance(pn, int):
+        if isinstance(pn, int) and pn >= 0:
             nums.append(pn)
     # Ensure prepay pages are included too (requirement says prepay is fixed 01+02).
     nums.extend(page_nums_for_stage(manifest, "prepay"))
@@ -603,32 +603,81 @@ async def _wait_for_s3_object(bucket: str, key: str, attempts: int = 6, delay_se
     return False
 
 
-def _build_pdf_bytes(job: Job, page_nums: List[int]) -> bytes:
-    images: List[Image.Image] = []
-    for pn in page_nums:
-        key = f"layout/{job.job_id}/pages/page_{pn:02d}.png"
-        try:
-            content = _s3_get_bytes(settings.S3_BUCKET_NAME, key)
-            if not content:
-                logger.warning(f"Page {pn} not found in S3, skipping")
-                continue
-            with Image.open(io.BytesIO(content)) as img:
-                images.append(img.convert("RGB"))
-        except Exception as e:
-            logger.error(f"Failed to load page {pn}: {e}")
-            continue
+def _load_s3_image(job_id: str, s3_key: str) -> Optional[Image.Image]:
+    """Load an image from S3 and return as RGB PIL Image, or None if not found."""
+    try:
+        content = _s3_get_bytes(settings.S3_BUCKET_NAME, s3_key)
+        if not content:
+            return None
+        return Image.open(io.BytesIO(content)).convert("RGB")
+    except Exception as e:
+        logger.error(f"Failed to load image {s3_key}: {e}")
+        return None
 
-    if len(images) == 0:
-        logger.error(f"No images found for job {job.job_id}")
+
+def _make_spread(left: Image.Image, right: Image.Image) -> Image.Image:
+    """Combine two images side by side into a spread."""
+    w, h = left.size
+    spread = Image.new("RGB", (w * 2, h))
+    spread.paste(left, (0, 0))
+    spread.paste(right, (w, 0))
+    return spread
+
+
+def _build_pdf_bytes(job: Job, page_nums: List[int], manifest=None) -> bytes:
+    job_id = job.job_id
+
+    # Load front and back covers
+    front_cover = _load_s3_image(job_id, f"layout/{job_id}/pages/front_cover.png")
+    back_cover = _load_s3_image(job_id, f"layout/{job_id}/pages/back_cover.png")
+
+    # Load page images
+    page_images: List[Image.Image] = []
+    for pn in page_nums:
+        key = f"layout/{job_id}/pages/page_{pn:02d}.png"
+        img = _load_s3_image(job_id, key)
+        if img:
+            page_images.append(img)
+        else:
+            logger.warning(f"Page {pn} not found in S3, skipping")
+
+    if not page_images and not front_cover and not back_cover:
+        logger.error(f"No images found for job {job_id}")
+        raise HTTPException(status_code=404, detail="No pages found")
+
+    # Build PDF pages: covers spread + internal page spreads
+    pdf_pages: List[Image.Image] = []
+
+    # Covers as a spread: [Back Cover][Front Cover]
+    if front_cover and back_cover:
+        pdf_pages.append(_make_spread(back_cover, front_cover))
+    elif front_cover:
+        pdf_pages.append(front_cover)
+    elif back_cover:
+        pdf_pages.append(back_cover)
+
+    # Pair internal pages into spreads
+    for i in range(0, len(page_images), 2):
+        if i + 1 < len(page_images):
+            pdf_pages.append(_make_spread(page_images[i], page_images[i + 1]))
+        else:
+            pdf_pages.append(page_images[i])
+
+    if not pdf_pages:
         raise HTTPException(status_code=404, detail="No pages found")
 
     try:
-        first, *rest = images
+        first, *rest = pdf_pages
         pdf_buffer = io.BytesIO()
         first.save(pdf_buffer, format="PDF", save_all=True, append_images=rest)
         return pdf_buffer.getvalue()
     finally:
-        for img in images:
+        for img in pdf_pages:
+            try:
+                img.close()
+            except Exception:
+                continue
+        for img in page_images:
             try:
                 img.close()
             except Exception:
